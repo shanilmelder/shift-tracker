@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { theme, Button, TextField, ListRow, Badge, EmptyState } from '../../../src/components';
+import { theme, Button, TextField, DateField, ListRow, Badge, EmptyState } from '../../../src/components';
 import * as timeOffApi from '../../../src/api/time-off-requests.api';
 import { ApiError } from '../../../src/types/api/common';
 
@@ -47,14 +47,14 @@ export default function TimeOffScreen(): React.JSX.Element {
         control={control}
         name="startDate"
         render={({ field }) => (
-          <TextField label="Start date (YYYY-MM-DD)" value={field.value ?? ''} onChangeText={field.onChange} errorMessage={errors.startDate?.message} />
+          <DateField label="Start date" mode="date" value={field.value ?? ''} onChange={field.onChange} errorMessage={errors.startDate?.message} />
         )}
       />
       <Controller
         control={control}
         name="endDate"
         render={({ field }) => (
-          <TextField label="End date (YYYY-MM-DD)" value={field.value ?? ''} onChangeText={field.onChange} errorMessage={errors.endDate?.message} />
+          <DateField label="End date" mode="date" value={field.value ?? ''} onChange={field.onChange} errorMessage={errors.endDate?.message} />
         )}
       />
       <Controller

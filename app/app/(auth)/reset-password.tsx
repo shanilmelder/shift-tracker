@@ -74,7 +74,7 @@ export default function ResetPasswordScreen(): React.JSX.Element {
         render={({ field }) => (
           <TextField
             label="New password"
-            secureTextEntry
+            isPassword
             value={field.value ?? ''}
             onChangeText={field.onChange}
             errorMessage={errors.password?.message}

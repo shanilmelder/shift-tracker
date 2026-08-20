@@ -12,7 +12,7 @@ const config: ExpoConfig = {
   version: '0.1.0',
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
-  plugins: ['expo-router', 'expo-location', 'expo-notifications'],
+  plugins: ['expo-router', 'expo-location', 'expo-notifications', '@react-native-community/datetimepicker'],
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.shifttracker.app',

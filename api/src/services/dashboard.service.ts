@@ -22,7 +22,7 @@ export interface NeedsYouItem {
 async function listPendingTimeOff(locationId: string): Promise<NeedsYouItem[]> {
   const { data, error } = await supabase
     .from('time_off_requests')
-    .select('id, start_date, end_date, employee:profiles!inner(name, location_id)')
+    .select('id, start_date, end_date, employee:profiles!time_off_requests_employee_id_fkey!inner(name, location_id)')
     .eq('employee.location_id', locationId)
     .eq('status', 'pending')
     .order('start_date', { ascending: true });
@@ -245,7 +245,7 @@ export async function getDashboard(locationId: string) {
       .eq('status', 'coworker_accepted'),
     supabase
       .from('time_off_requests')
-      .select('id, employee:profiles!inner(location_id)', { count: 'exact', head: true })
+      .select('id, employee:profiles!time_off_requests_employee_id_fkey!inner(location_id)', { count: 'exact', head: true })
       .eq('employee.location_id', locationId)
       .eq('status', 'pending'),
     getNeedsYou(locationId),

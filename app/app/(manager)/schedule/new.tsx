@@ -4,15 +4,20 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { theme, Button, TextField } from '../../../src/components';
+import { theme, Button, TextField, DateField } from '../../../src/components';
 import { useCreateShift } from '../../../src/queries/shifts.queries';
 import { ApiError } from '../../../src/types/api/common';
 
-const NewShiftSchema = z.object({
-  name: z.string().min(1, 'Shift name is required'),
-  startTime: z.string().min(1, 'Start time is required'),
-  endTime: z.string().min(1, 'End time is required'),
-});
+const NewShiftSchema = z
+  .object({
+    name: z.string().min(1, 'Shift name is required'),
+    startTime: z.string().min(1, 'Start time is required'),
+    endTime: z.string().min(1, 'End time is required'),
+  })
+  .refine((form) => new Date(form.endTime).getTime() > new Date(form.startTime).getTime(), {
+    message: 'End time must be after start time',
+    path: ['endTime'],
+  });
 type NewShiftForm = z.infer<typeof NewShiftSchema>;
 
 /**
@@ -27,8 +32,10 @@ export default function NewShiftScreen(): React.JSX.Element {
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<NewShiftForm>({ resolver: zodResolver(NewShiftSchema) });
+  const startTime = watch('startTime');
 
   async function onSubmit(values: NewShiftForm): Promise<void> {
     setSubmitError(null);
@@ -58,23 +65,21 @@ export default function NewShiftScreen(): React.JSX.Element {
         control={control}
         name="startTime"
         render={({ field }) => (
-          <TextField
-            label="Start time (ISO, e.g. 2026-09-01T09:00)"
-            value={field.value ?? ''}
-            onChangeText={field.onChange}
-            errorMessage={errors.startTime?.message}
-          />
+          <DateField label="Starts" mode="datetime" value={field.value ?? ''} onChange={field.onChange} errorMessage={errors.startTime?.message} />
         )}
       />
       <Controller
         control={control}
         name="endTime"
         render={({ field }) => (
-          <TextField
-            label="End time (ISO, e.g. 2026-09-01T17:00)"
+          <DateField
+            label="Ends"
+            mode="datetime"
             value={field.value ?? ''}
-            onChangeText={field.onChange}
+            onChange={field.onChange}
             errorMessage={errors.endTime?.message}
+            defaultValue={startTime ? new Date(new Date(startTime).getTime() + 60 * 60 * 1000) : undefined}
+            minimumDate={startTime ? new Date(startTime) : undefined}
           />
         )}
       />
