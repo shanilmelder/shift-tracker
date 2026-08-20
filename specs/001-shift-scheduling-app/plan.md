@@ -26,9 +26,12 @@ Expo SDK, current stable, for the app).
   Zod (request/response validation), `pino` (structured logging).
 - App: Expo Router, TanStack Query, Zustand, React Hook Form + Zod, `expo-notifications`,
   `expo-location`, `@tanstack/query-async-storage-persister` + `@react-native-async-storage/async-storage`,
-  `react-native-safe-area-context` (notch/home-indicator-safe layout), `@react-native-community/datetimepicker`
-  (native date/time entry), `lucide-react-native` + `react-native-svg` (tab bar icons, matching
-  `doc/design/`'s icon names 1:1).
+  `react-native-safe-area-context` (notch/home-indicator-safe layout), `lucide-react-native` +
+  `react-native-svg` (tab bar icons, matching `docs/design/`'s icon names 1:1). Date/time entry
+  (`DateField`, `app/src/components/DateField.tsx`) is a from-scratch calendar-grid + stepper
+  picker with no native module, deliberately not `@react-native-community/datetimepicker` —
+  that renders as an empty native-view placeholder in Expo Go, which this project develops
+  against day to day.
 
 **Storage**: Postgres on Supabase (schema in [data-model.md](data-model.md)); Supabase Storage
 for avatar files, uploaded only via the API.

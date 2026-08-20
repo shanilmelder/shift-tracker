@@ -13,6 +13,7 @@ import { swapRequestsRoutes } from './routes/swap-requests.routes.js';
 import { timeOffRequestsRoutes } from './routes/time-off-requests.routes.js';
 import { openShiftsRoutes } from './routes/open-shifts.routes.js';
 import { shiftAreasRoutes } from './routes/shift-areas.routes.js';
+import { shiftTemplatesRoutes } from './routes/shift-templates.routes.js';
 import { locationsRoutes } from './routes/locations.routes.js';
 import { announcementsRoutes } from './routes/announcements.routes.js';
 import { reportsRoutes } from './routes/reports.routes.js';
@@ -69,6 +70,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(timeOffRequestsRoutes);
   await app.register(openShiftsRoutes);
   await app.register(shiftAreasRoutes);
+  await app.register(shiftTemplatesRoutes);
   await app.register(locationsRoutes);
   await app.register(announcementsRoutes);
   await app.register(reportsRoutes);
