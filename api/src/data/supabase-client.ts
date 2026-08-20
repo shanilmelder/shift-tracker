@@ -30,3 +30,17 @@ export function supabaseAsUser(accessToken: string): SupabaseClient {
     global: { headers: { Authorization: `Bearer ${accessToken}` } },
   });
 }
+
+/**
+ * Verifies a caller-supplied bearer token in authMiddleware. This MUST be a throwaway client,
+ * never the shared `supabase` singleton above: calling `.auth.getUser(token)` on a client
+ * mutates that client's own in-memory session, and every later `.from()` call on the same
+ * client instance then authorizes as that caller (subject to RLS) instead of service_role —
+ * silently defeating every other module's use of the service-role client for the rest of that
+ * client's lifetime.
+ */
+export function createTokenVerifierClient(): SupabaseClient {
+  return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
