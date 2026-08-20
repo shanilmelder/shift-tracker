@@ -107,7 +107,9 @@ are an implementation-phase task, not a planning artifact.
 | POST | `/v1/time-entries/clock-in` | employee (must be assigned to `shift_id`) | Body: `shift_id`, `lat`, `lng`, `idempotency_key`. Server computes distance to `locations.geofence_radius_m`; outside → still creates the row but `flagged_for_review=true` (FR-038, never blocks). |
 | POST | `/v1/time-entries/geofence-check` | employee (must be assigned to `shift_id`) | Body: `shift_id`, `lat`, `lng`. Informational only, never blocks (FR-038) — returns `{withinRange, approxDistanceM?}` so the client can show a live status before clocking in, without exposing the location's actual coordinates or configured radius (those stay manager-only, see `GET /v1/locations/mine`). |
 | POST | `/v1/time-entries/:id/clock-out` | employee (own entry) | Body: `lat`, `lng`, `idempotency_key`. Same geofence check; completes the entry. |
-| GET | `/v1/time-entries?mine=true&from=&to=` | employee | Own entries. |
+| POST | `/v1/time-entries/:id/break-start` | employee (own entry) | Starts a break on this time entry; idempotent (a second call while already on break returns the existing open break rather than erroring). Breaks are paid — purely tracking/display, never subtracted from worked hours. Multiple breaks per entry are allowed. |
+| POST | `/v1/time-entries/:id/break-end` | employee (own entry) | Ends the currently-open break on this entry. |
+| GET | `/v1/time-entries?mine=true&from=&to=` | employee | Own entries, each including a `breaks` array. |
 | GET | `/v1/time-entries?flagged=true` | manager (same location) | Entries needing review. |
 | GET | `/v1/timesheets/mine?period=` | employee | Aggregated regular/overtime hours per day and pay period (FR-020), computed server-side from `time_entries`. |
 | GET | `/v1/timesheets/export?period=&location_id=` | manager (same location) | CSV export for downstream payroll (explicitly in scope per spec's Out of Scope note). |

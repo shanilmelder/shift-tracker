@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import { ClockInSchema, ClockOutSchema, GeofenceCheckSchema } from '../schemas/time-entries.schemas.js';
 import { clockIn, clockOut, listMyTimeEntries, checkGeofence } from '../services/time-entries.service.js';
+import { startBreak, endBreak } from '../services/time-entry-breaks.service.js';
 import { supabase } from '../data/supabase-client.js';
 import { listFlaggedForLocation } from '../data/time-entries.repo.js';
 import '../types.js';
@@ -63,6 +64,18 @@ export async function timeEntriesRoutes(app: FastifyInstance): Promise<void> {
     const { id } = request.params as { id: string };
     const entry = await clockOut({ timeEntryId: id, employeeId: request.caller!.id, lat: parsed.data.lat, lng: parsed.data.lng });
     await reply.send(entry);
+  });
+
+  app.post('/v1/time-entries/:id/break-start', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const brk = await startBreak(id, request.caller!.id);
+    await reply.code(201).send(brk);
+  });
+
+  app.post('/v1/time-entries/:id/break-end', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const brk = await endBreak(id, request.caller!.id);
+    await reply.send(brk);
   });
 
   app.get('/v1/time-entries', async (request, reply) => {

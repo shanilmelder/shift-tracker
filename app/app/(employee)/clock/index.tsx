@@ -14,6 +14,15 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
+function formatElapsed(sinceIso: string, now: Date): string {
+  const totalSeconds = Math.max(0, Math.floor((now.getTime() - new Date(sinceIso).getTime()) / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
 /**
  * Clock in/out (FR-019/FR-037-040). Location is checked server-side and NEVER blocks the
  * action here — the mutation always attempts to complete, and TanStack Query's offline
@@ -92,7 +101,7 @@ export default function ClockScreen(): React.JSX.Element {
             <ShiftClockCard
               key={shift.id}
               shift={shift}
-              isClockedIn={isClockedIn}
+              entry={isClockedIn ? openEntry : undefined}
               isPending={isPending}
               disabled={isPending || (!isClockedIn && Boolean(openEntry))}
               onClockIn={() => clockInMutation.mutate(shift.id)}
@@ -107,7 +116,9 @@ export default function ClockScreen(): React.JSX.Element {
 
 interface ShiftClockCardProps {
   shift: Shift;
-  isClockedIn: boolean;
+  /** Present only while clocked in on this shift — carries clock_in_at/breaks for the Elapsed
+   * card and break toggle below. */
+  entry?: timeEntriesApi.TimeEntry;
   isPending: boolean;
   disabled: boolean;
   onClockIn: () => void;
@@ -116,11 +127,12 @@ interface ShiftClockCardProps {
 
 /**
  * One shift's card: the "Location check" status (informational only, per checkGeofence's own
- * doc comment — never blocks the button below it) plus the circular clock button itself.
+ * doc comment — never blocks the button below it) plus the circular clock button itself, and
+ * — once clocked in — an elapsed-time readout and break toggle.
  * Split out from the list so each card's geofence query is its own hook call, not one called a
  * variable number of times inside a loop.
  */
-function ShiftClockCard({ shift, isClockedIn, isPending, disabled, onClockIn, onClockOut }: ShiftClockCardProps): React.JSX.Element {
+function ShiftClockCard({ shift, entry, isPending, disabled, onClockIn, onClockOut }: ShiftClockCardProps): React.JSX.Element {
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
@@ -143,6 +155,8 @@ function ShiftClockCard({ shift, isClockedIn, isPending, disabled, onClockIn, on
     queryFn: () => timeEntriesApi.checkGeofence({ shiftId: shift.id, lat: position!.lat, lng: position!.lng }),
     enabled: Boolean(position),
   });
+
+  const isClockedIn = Boolean(entry);
 
   return (
     <Card style={styles.card}>
@@ -179,7 +193,51 @@ function ShiftClockCard({ shift, isClockedIn, isPending, disabled, onClockIn, on
           </Text>
         </Pressable>
       </View>
+
+      {entry ? <ElapsedAndBreak entry={entry} /> : null}
     </Card>
+  );
+}
+
+/** Split out so its 1-second timer only runs while a card is actually clocked in. */
+function ElapsedAndBreak({ entry }: { entry: timeEntriesApi.TimeEntry }): React.JSX.Element {
+  const queryClient = useQueryClient();
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const openBreak = entry.breaks.find((b) => !b.break_end_at);
+
+  const startBreakMutation = useMutation({
+    mutationFn: () => timeEntriesApi.startBreak(entry.id),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['time-entries', 'mine'] }),
+  });
+  const endBreakMutation = useMutation({
+    mutationFn: () => timeEntriesApi.endBreak(entry.id),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['time-entries', 'mine'] }),
+  });
+  const breakMutationPending = startBreakMutation.isPending || endBreakMutation.isPending;
+
+  return (
+    <View style={styles.elapsedRow}>
+      <View>
+        <Text style={styles.scheduled}>Elapsed</Text>
+        <Text style={styles.elapsedValue}>{entry.clock_in_at ? formatElapsed(entry.clock_in_at, now) : '—'}</Text>
+      </View>
+      <Pressable
+        onPress={() => (openBreak ? endBreakMutation.mutate() : startBreakMutation.mutate())}
+        disabled={breakMutationPending}
+        accessibilityRole="button"
+        accessibilityLabel={openBreak ? 'End break' : 'Start break'}
+        accessibilityState={{ disabled: breakMutationPending }}
+        style={({ pressed }) => [styles.breakPill, pressed && !breakMutationPending ? styles.breakPillPressed : null, breakMutationPending ? styles.clockButtonDisabled : null]}
+      >
+        <Text style={styles.breakPillText}>{openBreak ? 'End break' : 'Start break'}</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -255,5 +313,37 @@ const styles = StyleSheet.create({
     ...theme.typography.heading,
     fontFamily: theme.typography.value.fontFamily,
     color: theme.colors.primaryText,
+  },
+  elapsedRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    marginTop: theme.spacing.sm,
+  },
+  elapsedValue: {
+    ...theme.typography.value,
+    color: theme.colors.textPrimary,
+  },
+  breakPill: {
+    borderWidth: 1,
+    borderColor: theme.colors.borderStrong,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    minHeight: theme.minTapTarget,
+    justifyContent: 'center',
+  },
+  breakPillPressed: {
+    backgroundColor: theme.colors.surfaceMuted,
+  },
+  breakPillText: {
+    ...theme.typography.label,
+    color: theme.colors.textPrimary,
   },
 });
