@@ -63,7 +63,7 @@ export default function LoginScreen(): React.JSX.Element {
         render={({ field }) => (
           <TextField
             label="Password"
-            secureTextEntry
+            isPassword
             value={field.value ?? ''}
             onChangeText={field.onChange}
             errorMessage={errors.password?.message}

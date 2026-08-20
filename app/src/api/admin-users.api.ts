@@ -21,3 +21,16 @@ export interface StaffMember {
 export function createStaffMember(input: CreateStaffInput): Promise<StaffMember> {
   return apiRequest<StaffMember>('/admin/users', { method: 'POST', body: input });
 }
+
+export interface StaffListEntry {
+  id: string;
+  name: string;
+  role: 'employee' | 'manager';
+  job_role: string | null;
+  is_active: boolean;
+  invite_status: 'pending' | 'accepted';
+}
+
+export function listStaff(): Promise<StaffListEntry[]> {
+  return apiRequest<StaffListEntry[]>('/admin/users');
+}

@@ -15,6 +15,7 @@
  * without creating a duplicate.
  */
 import { createClient } from '@supabase/supabase-js';
+import { RESET_PASSWORD_DEEP_LINK } from '../src/config/app-links.js';
 
 function parseArgs(argv: string[]): Record<string, string> {
   const args: Record<string, string> = {};
@@ -90,7 +91,7 @@ async function main(): Promise<void> {
     throw profileError;
   }
 
-  await supabase.auth.admin.inviteUserByEmail(email);
+  await supabase.auth.admin.inviteUserByEmail(email, { redirectTo: RESET_PASSWORD_DEEP_LINK });
 
   console.log(`Seeded first manager "${name}" <${email}> at location "${locationName}".`);
   console.log('An invite email has been sent for them to set their own password.');

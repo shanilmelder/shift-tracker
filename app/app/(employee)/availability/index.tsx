@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme, Button, TextField, ListRow, EmptyState } from '../../../src/components';
+import { theme, Button, TextField, DateField, ListRow, EmptyState } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
 
 interface AvailabilityRow {
@@ -58,14 +58,14 @@ export default function AvailabilityScreen(): React.JSX.Element {
       <View style={styles.addRow}>
         <Text style={styles.sectionLabel}>Recurring weekly availability</Text>
         <TextField label="Day of week (0=Sun … 6=Sat)" keyboardType="number-pad" value={recurringDay} onChangeText={setRecurringDay} />
-        <TextField label="Start time (HH:MM)" value={recurringStart} onChangeText={setRecurringStart} />
-        <TextField label="End time (HH:MM)" value={recurringEnd} onChangeText={setRecurringEnd} />
+        <DateField label="Start time" mode="time" value={recurringStart} onChange={setRecurringStart} />
+        <DateField label="End time" mode="time" value={recurringEnd} onChange={setRecurringEnd} />
         <Button label="Add recurring window" onPress={() => addRecurringMutation.mutate()} disabled={addRecurringMutation.isPending} />
       </View>
 
       <View style={styles.addRow}>
         <Text style={styles.sectionLabel}>Block out a specific date</Text>
-        <TextField label="Date (YYYY-MM-DD)" value={blockedDate} onChangeText={setBlockedDate} />
+        <DateField label="Date" mode="date" value={blockedDate} onChange={setBlockedDate} />
         <Button label="Add blocked date" onPress={() => addBlockedDateMutation.mutate()} disabled={!blockedDate.trim() || addBlockedDateMutation.isPending} />
       </View>
 

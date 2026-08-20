@@ -23,7 +23,7 @@ shift_areas ──< shifts (shift_area_id, nullable)
 
 shifts ──< shift_assignments >── profiles (employee_id)
 shifts ──< shift_swap_requests
-shifts ──< time_entries
+shifts ──< time_entries ──< time_entry_breaks
 shifts ──< announcements (when target_scope = 'shift')
 
 profiles ──< shift_assignments (employee_id)
@@ -165,6 +165,22 @@ location timezone), applying the fixed 8-hour/day overtime threshold. This keeps
 pure, unit-testable function (constitution: Testable Business Logic) rather than duplicated
 stored state that could drift from the underlying entries.
 
+### `time_entry_breaks`
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | `uuid` | PK, default `gen_random_uuid()` | |
+| `time_entry_id` | `uuid` | NOT NULL, FK → `time_entries(id)` ON DELETE CASCADE | |
+| `break_start_at` | `timestamptz` | NOT NULL, default `now()` | |
+| `break_end_at` | `timestamptz` | NULL, `CHECK (break_end_at IS NULL OR break_end_at > break_start_at)` | |
+| | | Partial `UNIQUE (time_entry_id) WHERE break_end_at IS NULL` | At most one open break per time entry, enforced at the database level |
+
+Backs FR-047 (paid break tracking, multiple breaks per shift); added in migration `0018`. A
+separate child table rather than two columns on `time_entries`, since more than one break per
+shift is allowed. **Paid**: this table is tracking/display data only and is deliberately never
+read by the regular/overtime computation described above — break time still counts as worked
+time (per the 2026-08-20 clarification).
+
 ### `open_shift_claims`
 
 | Column | Type | Constraints | Notes |
@@ -262,6 +278,9 @@ path still cannot cross an authorization boundary. Representative policies:
   assigned to; `UPDATE` limited to setting their own `clock_out_*` fields. Managers at the
   location have full read; review-flag handling is manager-read, no manager edit of the
   recorded clock values themselves (to preserve an unaltered audit trail).
+- **`time_entry_breaks`**: an employee can `SELECT`/`INSERT`/`UPDATE` rows only for a
+  `time_entry_id` whose parent `time_entries` row belongs to them; managers at the location
+  have read-only access via a join through `time_entries` → `shifts`.
 - **`announcements`**: `SELECT` scoped by `target_scope` (team/location membership, or shift
   staffing membership for `target_scope = 'shift'`); `INSERT` manager-only.
 

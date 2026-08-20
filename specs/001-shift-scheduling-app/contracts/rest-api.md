@@ -59,8 +59,8 @@ are an implementation-phase task, not a planning artifact.
 |---|---|---|---|
 | GET | `/v1/shifts` | authenticated | List shifts at caller's location; employees see only shifts they're staffed on plus the open-shift board subset — filtering enforced server-side, not just client-side query params. Query params: `from`, `to`, `status`. |
 | GET | `/v1/shifts/:id` | authenticated (must be staffed on it, its leader, or a manager) | Shift detail including staffing. |
-| POST | `/v1/shifts` | manager | Create with `name`, `start_time`, `end_time`, `shift_area_id?`, `position?`, `notes?`. Result has `status='draft'`, **no staffing** (schema has no employee column). |
-| PATCH | `/v1/shifts/:id` | manager (same location) | Edit name/time/area/notes only — never touches staffing (FR-027). |
+| POST | `/v1/shifts` | manager | Create with `name`, `start_time`, `end_time`, `shift_area_id?`, `position?`, `notes?`. Result has `status='draft'`, **no staffing** (schema has no employee column). `end_time` must be after `start_time` — enforced by the request schema (400 with a friendly message) as well as the DB's `shifts_end_after_start` check constraint as a backstop. |
+| PATCH | `/v1/shifts/:id` | manager (same location) | Edit name/time/area/notes only — never touches staffing (FR-027). Same `end_time > start_time` check applies whenever both are provided together in one call. |
 | POST | `/v1/shifts/:id/cancel` | manager (same location) | Sets `status='cancelled'`; requires explicit confirmation client-side (constitution non-negotiable: destructive actions). |
 
 ## Shift Staffing (staff step — FR-026/FR-027, separate from the above)

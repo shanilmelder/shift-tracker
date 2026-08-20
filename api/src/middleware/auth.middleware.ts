@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { supabase } from '../data/supabase-client.js';
+import { supabase, createTokenVerifierClient } from '../data/supabase-client.js';
 import '../types.js';
 
 /**
@@ -19,7 +19,7 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
   }
 
   const accessToken = header.slice('Bearer '.length);
-  const { data: userResult, error: userError } = await supabase.auth.getUser(accessToken);
+  const { data: userResult, error: userError } = await createTokenVerifierClient().auth.getUser(accessToken);
   if (userError || !userResult?.user) {
     await reply.code(401).send({ error: { code: 'UNAUTHENTICATED', message: 'Invalid or expired token' } });
     return;

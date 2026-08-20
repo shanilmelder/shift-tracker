@@ -25,7 +25,13 @@ Expo SDK, current stable, for the app).
 - API: Fastify, `@supabase/supabase-js` (service-role client), `node-cron`, `expo-server-sdk`,
   Zod (request/response validation), `pino` (structured logging).
 - App: Expo Router, TanStack Query, Zustand, React Hook Form + Zod, `expo-notifications`,
-  `expo-location`, `@tanstack/query-async-storage-persister` + `@react-native-async-storage/async-storage`.
+  `expo-location`, `@tanstack/query-async-storage-persister` + `@react-native-async-storage/async-storage`,
+  `react-native-safe-area-context` (notch/home-indicator-safe layout), `lucide-react-native` +
+  `react-native-svg` (tab bar icons, matching `docs/design/`'s icon names 1:1). Date/time entry
+  (`DateField`, `app/src/components/DateField.tsx`) is a from-scratch calendar-grid + stepper
+  picker with no native module, deliberately not `@react-native-community/datetimepicker` —
+  that renders as an empty native-view placeholder in Expo Go, which this project develops
+  against day to day.
 
 **Storage**: Postgres on Supabase (schema in [data-model.md](data-model.md)); Supabase Storage
 for avatar files, uploaded only via the API.
@@ -65,7 +71,7 @@ scaling of the API.
 | II. Two-Role Clarity | Every functional requirement in spec.md is written per-role; every contract endpoint above states its role gate for both employee and manager paths. | **PASS** |
 | III. Offline Resilience | Clock-in/out and schedule viewing use TanStack Query's persisted cache (reads) and persisted mutation queue (writes) — research.md #6. Actions never block on connectivity; they queue and sync (FR-040). | **PASS** |
 | IV. Simplicity Over Cleverness | Realtime uses SSE, not WebSockets, because nothing here needs bidirectional push (research.md #1). Offline queueing reuses TanStack Query's built-in support rather than a custom sync engine (research.md #6). Fastify's built-in schema validation is used instead of a hand-assembled middleware stack (research.md #4). | **PASS** |
-| V. Consistent Design System | Single `theme.ts` (colors/spacing/typography) + one `src/components/` library shared by both the employee and manager route groups — see Project Structure. | **PASS** |
+| V. Consistent Design System | Single `theme.ts` (colors/spacing/typography/radius/shadows) + one `src/components/` library shared by both the employee and manager route groups — see Project Structure. Token values are transcribed from `doc/design/_ds/ledger-design-system-*/` (Fraunces + Inter typefaces, warm-neutral palette, deep-green accent), applied session 2026-08-20. | **PASS** |
 | VI. Type Safety | TypeScript throughout both projects; Zod schemas on the API double as runtime validation and the source for generated/checked request-response types consumed by the app's `src/types/api/` (quickstart.md's Type Sync check). | **PASS** |
 | VII. Testable Business Logic | Conflict detection, overtime calculation, geofence validation, and swap/time-off approval routing are implemented as pure functions in the API's `services/` layer, unit-tested independent of any route/UI (research.md #9). | **PASS** |
 | VIII. Accessibility | Shared component library (Project Structure) is the single place tap-target sizing and screen-reader labeling are implemented once and reused everywhere, rather than per-screen. Enforced during implementation/review, not automatically satisfied by this plan alone — flagged as an implementation-phase checklist item. | **PASS (pending impl. verification)** |

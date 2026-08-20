@@ -32,6 +32,14 @@
   compliance requirement) is deferred to a future version, to be revisited once a target
   region is known.
 
+### Session 2026-08-20 (resolved during break-tracking implementation)
+
+- Q: Are an employee's on-shift breaks paid or unpaid? → A: Paid — break time counts as worked
+  time; breaks are tracking/display only and are never subtracted from computed regular or
+  overtime hours.
+- Q: Can an employee take more than one break in a single shift? → A: Yes — multiple breaks per
+  shift are allowed, each independently timestamped.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Manager onboards staff without public sign-up (Priority: P1)
@@ -381,6 +389,10 @@ sent to a specific shift's staff reaches only those employees.
 
 - **FR-025**: Managers MUST be able to view a dashboard summarizing today's coverage, open
   unfilled shifts, and pending approvals.
+- **FR-025a**: The dashboard MUST also show a current-week (Monday–Sunday) coverage trend at a
+  glance, and MUST surface a short, priority-ordered list of specific items needing the
+  manager's attention (pending time-off requests, flagged clock exceptions, unstaffed shifts)
+  rather than counts alone — each item MUST link directly to the relevant screen to act on it.
 - **FR-026**: The system MUST separate shift creation from shift staffing into two distinct
   steps: creating a shift MUST require only a name and a start/end date-time and MUST result
   in an unstaffed shift; staffing a shift MUST be a separate action, performable at any later
@@ -424,11 +436,18 @@ sent to a specific shift's staff reaches only those employees.
   (default 150 meters), applied at both clock-in and clock-out.
 - **FR-038**: A clock-in or clock-out outside the configured geofence radius MUST still be
   permitted to complete, but MUST be flagged for manager review rather than blocked.
+- **FR-038a**: Before clocking in, an employee MUST be shown a live indication of whether their
+  device is currently within the shift's geofence — informational only, and MUST NOT block or
+  delay the clock-in action even when outside range (per FR-038). This preview MUST NOT expose
+  the location's exact coordinates or configured radius to the employee.
 - **FR-039**: Completed clock-in/clock-out pairs MUST automatically compute worked hours and
   populate the employee's timesheet without manual re-entry.
 - **FR-040**: Clock-in and clock-out actions taken while the device has no connectivity MUST be
   queued locally and MUST sync automatically once connectivity is restored, without silent
   data loss.
+- **FR-047**: An employee clocked into a shift MUST be able to start and end one or more paid
+  breaks; break time counts as worked time and MUST NOT be excluded from computed regular or
+  overtime hours (FR-020).
 
 **Shift Swap and Open Shift Claim**
 

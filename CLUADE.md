@@ -1,3 +1,4 @@
 # Shift Tracker App
 
-- All required design files wireframes and mockups are in `docs/design/`
+- Prototype in `docs/design/Shift App Prototype.dc.html`
+- Wireframes in `docs/design/Shift App Wireframes.dc.html`

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import { useFonts } from 'expo-font';
 import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces/600SemiBold';
@@ -73,13 +74,11 @@ export default function RootLayout(): React.JSX.Element {
     return unsubscribeRealtime;
   }, [accessToken]);
 
-  if (!hydrated || !fontsLoaded) {
-    return <Slot />;
-  }
-
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
-      <Slot />
-    </PersistQueryClientProvider>
+    <SafeAreaProvider>
+      <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
+        {!hydrated || !fontsLoaded ? null : <Slot />}
+      </PersistQueryClientProvider>
+    </SafeAreaProvider>
   );
 }
