@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import { theme } from './theme';
+import { theme, fontFamilies } from './theme';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
@@ -14,6 +14,24 @@ export interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
+const fillColor: Record<ButtonVariant, string> = {
+  primary: theme.colors.primary,
+  secondary: theme.colors.surface,
+  danger: theme.colors.danger,
+};
+
+const pressedFillColor: Record<ButtonVariant, string> = {
+  primary: theme.colors.primaryHover,
+  secondary: theme.colors.surfaceMuted,
+  danger: theme.colors.danger,
+};
+
+const textColor: Record<ButtonVariant, string> = {
+  primary: theme.colors.primaryText,
+  secondary: theme.colors.textPrimary,
+  danger: theme.colors.primaryText,
+};
+
 /**
  * The shared button used everywhere an action is triggered. Meets the constitution's
  * accessibility requirements by construction: a real `accessibilityRole="button"`, the shared
@@ -21,15 +39,6 @@ export interface ButtonProps {
  * visually dimmed.
  */
 export function Button({ label, onPress, variant = 'primary', disabled = false, accessibilityHint, style }: ButtonProps): React.JSX.Element {
-  const backgroundColor = disabled
-    ? theme.colors.disabled
-    : variant === 'primary'
-      ? theme.colors.primary
-      : variant === 'danger'
-        ? theme.colors.danger
-        : theme.colors.surface;
-  const textColor = variant === 'secondary' && !disabled ? theme.colors.textPrimary : theme.colors.primaryText;
-
   return (
     <Pressable
       onPress={onPress}
@@ -38,9 +47,15 @@ export function Button({ label, onPress, variant = 'primary', disabled = false, 
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled }}
-      style={[styles.base, { backgroundColor }, style]}
+      style={({ pressed }) => [
+        styles.base,
+        variant === 'secondary' ? styles.secondaryOutline : null,
+        { backgroundColor: pressed && !disabled ? pressedFillColor[variant] : fillColor[variant] },
+        disabled ? styles.disabled : null,
+        style,
+      ]}
     >
-      <Text style={[styles.label, { color: textColor }]}>{label}</Text>
+      <Text style={[styles.label, { color: textColor[variant] }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -50,12 +65,23 @@ const styles = StyleSheet.create({
     minHeight: theme.minTapTarget,
     minWidth: theme.minTapTarget,
     paddingHorizontal: theme.spacing.md,
-    borderRadius: 10,
+    borderRadius: theme.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  secondaryOutline: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  // Ledger's disabled rule: opacity only, never a color swap (see theme.ts's colors.disabled,
+  // which is now unused here for that reason — kept in the palette for anything non-Button
+  // that still wants a flat disabled fill).
+  disabled: {
+    opacity: 0.4,
+  },
   label: {
-    ...theme.typography.body,
-    fontWeight: '600',
+    fontFamily: fontFamilies.sansSemiBold,
+    fontSize: theme.typography.body.fontSize,
+    lineHeight: theme.typography.body.lineHeight,
   },
 });

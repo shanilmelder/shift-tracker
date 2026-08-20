@@ -15,6 +15,7 @@ are an implementation-phase task, not a planning artifact.
 |---|---|---|---|
 | POST | `/v1/auth/session` | none (public) | Exchanges email+password or magic-link callback for a Supabase session; proxies to Supabase Auth. **No sign-up endpoint exists anywhere in this API.** |
 | POST | `/v1/auth/password-reset` | none (public) | Triggers Supabase Auth's password-reset email flow. |
+| PATCH | `/v1/auth/password` | authenticated | Body: `password`. Sets the caller's password and flips `invite_status` to `accepted`. Reachable both by a signed-in user changing their password and by a new/reset-requesting user whose invite/recovery link's `access_token` (a normal Supabase session JWT) is used as the bearer token — no separate token-verification path. |
 | POST | `/v1/auth/logout` | authenticated | Invalidates the current session. |
 | GET | `/v1/auth/me` | authenticated | Returns the caller's own profile + role + location. |
 
@@ -104,8 +105,11 @@ are an implementation-phase task, not a planning artifact.
 | Method | Path | Role gate | Description |
 |---|---|---|---|
 | POST | `/v1/time-entries/clock-in` | employee (must be assigned to `shift_id`) | Body: `shift_id`, `lat`, `lng`, `idempotency_key`. Server computes distance to `locations.geofence_radius_m`; outside → still creates the row but `flagged_for_review=true` (FR-038, never blocks). |
+| POST | `/v1/time-entries/geofence-check` | employee (must be assigned to `shift_id`) | Body: `shift_id`, `lat`, `lng`. Informational only, never blocks (FR-038) — returns `{withinRange, approxDistanceM?}` so the client can show a live status before clocking in, without exposing the location's actual coordinates or configured radius (those stay manager-only, see `GET /v1/locations/mine`). |
 | POST | `/v1/time-entries/:id/clock-out` | employee (own entry) | Body: `lat`, `lng`, `idempotency_key`. Same geofence check; completes the entry. |
-| GET | `/v1/time-entries?mine=true&from=&to=` | employee | Own entries. |
+| POST | `/v1/time-entries/:id/break-start` | employee (own entry) | Starts a break on this time entry; idempotent (a second call while already on break returns the existing open break rather than erroring). Breaks are paid — purely tracking/display, never subtracted from worked hours. Multiple breaks per entry are allowed. |
+| POST | `/v1/time-entries/:id/break-end` | employee (own entry) | Ends the currently-open break on this entry. |
+| GET | `/v1/time-entries?mine=true&from=&to=` | employee | Own entries, each including a `breaks` array. |
 | GET | `/v1/time-entries?flagged=true` | manager (same location) | Entries needing review. |
 | GET | `/v1/timesheets/mine?period=` | employee | Aggregated regular/overtime hours per day and pay period (FR-020), computed server-side from `time_entries`. |
 | GET | `/v1/timesheets/export?period=&location_id=` | manager (same location) | CSV export for downstream payroll (explicitly in scope per spec's Out of Scope note). |
@@ -138,7 +142,7 @@ are an implementation-phase task, not a planning artifact.
 
 | Method | Path | Role gate | Description |
 |---|---|---|---|
-| GET | `/v1/dashboard` | manager | Today's coverage, count of open unfilled shifts, count of pending swap/time-off approvals — a single aggregate call so the dashboard doesn't require the client to cross-reference multiple endpoints (SC-008). |
+| GET | `/v1/dashboard` | manager | Today's coverage, count of open unfilled shifts, count of pending swap/time-off approvals, plus `needsYou` — up to 5 display-ready action items (pending time-off, flagged clock entries, unstaffed draft shifts, in that fixed priority order) each with `title`, `subtitle`, and a `cta` naming which screen to deep-link to — and `coverageByDay`, the current Mon–Sun week (as read in the location's own timezone) per-day `{date, dayLabel, totalShifts, staffedShifts, coveragePct}` (coverage = shifts with ≥1 assignment / total shifts that day; the schema has no per-shift headcount target to measure hours against). A single aggregate call so the dashboard doesn't require the client to cross-reference multiple endpoints (SC-008). |
 
 ## Devices (push notification registration)
 

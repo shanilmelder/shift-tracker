@@ -34,12 +34,12 @@ export function Badge({ label, tone = 'neutral' }: BadgeProps): React.JSX.Elemen
 const styles = StyleSheet.create({
   badge: {
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: theme.radius.sm,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: 2,
   },
   label: {
     ...theme.typography.caption,
-    fontWeight: '600',
+    fontFamily: theme.typography.label.fontFamily,
   },
 });

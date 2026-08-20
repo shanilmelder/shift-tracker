@@ -7,13 +7,14 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --env-file=.env src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js",
+    "start": "node --env-file=.env dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint . --ext .ts",
-    "seed:first-manager": "tsx scripts/seed-first-manager.ts"
+    "seed:first-manager": "tsx --env-file=.env scripts/seed-first-manager.ts",
+    "resend-invite": "tsx --env-file=.env scripts/resend-invite.ts"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

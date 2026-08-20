@@ -54,17 +54,18 @@ export function ConfirmDialog({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(28,31,28,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: theme.spacing.lg,
   },
   dialog: {
-    backgroundColor: theme.colors.background,
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
     padding: theme.spacing.lg,
     width: '100%',
     maxWidth: 400,
+    ...theme.shadows.modal,
   },
   title: {
     ...theme.typography.heading,

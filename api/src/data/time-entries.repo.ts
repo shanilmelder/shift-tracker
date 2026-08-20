@@ -1,5 +1,12 @@
 import { supabase } from './supabase-client.js';
 
+export interface TimeEntryBreakRow {
+  id: string;
+  time_entry_id: string;
+  break_start_at: string;
+  break_end_at: string | null;
+}
+
 export interface TimeEntryRow {
   id: string;
   shift_id: string;
@@ -13,6 +20,9 @@ export interface TimeEntryRow {
   flagged_for_review: boolean;
   idempotency_key: string;
   created_at: string;
+  /** Only present on rows fetched via listForEmployee, which embeds it — other queries here
+   * (find-by-id, flagged-for-location) don't need it and don't select it. */
+  breaks?: TimeEntryBreakRow[];
 }
 
 export async function findByIdempotencyKey(idempotencyKey: string): Promise<TimeEntryRow | null> {
@@ -75,7 +85,7 @@ export async function findById(id: string): Promise<TimeEntryRow | null> {
 }
 
 export async function listForEmployee(employeeId: string, from?: string, to?: string): Promise<TimeEntryRow[]> {
-  let query = supabase.from('time_entries').select('*').eq('employee_id', employeeId);
+  let query = supabase.from('time_entries').select('*, breaks:time_entry_breaks(*)').eq('employee_id', employeeId);
   if (from) query = query.gte('clock_in_at', from);
   if (to) query = query.lte('clock_in_at', to);
   const { data, error } = await query.order('clock_in_at', { ascending: true });

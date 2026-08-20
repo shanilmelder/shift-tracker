@@ -81,3 +81,61 @@ describe('time-entries.service.clockIn', () => {
     expect(timeEntriesInsert).not.toHaveBeenCalled();
   });
 });
+
+describe('time-entries.service.checkGeofence', () => {
+  beforeEach(() => {
+    shiftsSelectSingle.mockReset();
+    locationsSelectSingle.mockReset();
+  });
+
+  it('reports withinRange true and a rounded distance when inside the radius', async () => {
+    locationsSelectSingle.mockResolvedValue({
+      data: { geofence_radius_m: 150, latitude: 41.8781, longitude: -87.6298 },
+      error: null,
+    });
+
+    const { checkGeofence } = await import('../../src/services/time-entries.service.js');
+    const result = await checkGeofence('shift-1', { lat: 41.8781, lng: -87.6298 });
+
+    expect(result.withinRange).toBe(true);
+    expect(result.approxDistanceM).toBe(0);
+  });
+
+  it('reports withinRange false with a distance when outside the radius', async () => {
+    locationsSelectSingle.mockResolvedValue({
+      data: { geofence_radius_m: 150, latitude: 41.8781, longitude: -87.6298 },
+      error: null,
+    });
+
+    const { checkGeofence } = await import('../../src/services/time-entries.service.js');
+    // ~1.1km away — well outside a 150m radius.
+    const result = await checkGeofence('shift-1', { lat: 41.888, lng: -87.6298 });
+
+    expect(result.withinRange).toBe(false);
+    expect(result.approxDistanceM).toBeGreaterThan(150);
+  });
+
+  it('never returns the location coordinates or configured radius, only the verdict and distance', async () => {
+    locationsSelectSingle.mockResolvedValue({
+      data: { geofence_radius_m: 150, latitude: 41.8781, longitude: -87.6298 },
+      error: null,
+    });
+
+    const { checkGeofence } = await import('../../src/services/time-entries.service.js');
+    const result = await checkGeofence('shift-1', { lat: 41.8781, lng: -87.6298 });
+
+    expect(Object.keys(result).sort()).toEqual(['approxDistanceM', 'withinRange']);
+  });
+
+  it('fails open (withinRange true, no distance) when the location has no coordinates set yet', async () => {
+    locationsSelectSingle.mockResolvedValue({
+      data: { geofence_radius_m: 150, latitude: null, longitude: null },
+      error: null,
+    });
+
+    const { checkGeofence } = await import('../../src/services/time-entries.service.js');
+    const result = await checkGeofence('shift-1', { lat: 41.8781, lng: -87.6298 });
+
+    expect(result).toEqual({ withinRange: true });
+  });
+});

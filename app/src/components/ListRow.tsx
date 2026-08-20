@@ -31,7 +31,7 @@ export function ListRow({ title, subtitle, onPress, right, accessibilityLabel }:
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? `${title}${subtitle ? `, ${subtitle}` : ''}`}
-      style={styles.pressable}
+      style={({ pressed }) => [styles.pressable, pressed ? styles.pressed : null]}
     >
       {content}
     </Pressable>
@@ -41,6 +41,9 @@ export function ListRow({ title, subtitle, onPress, right, accessibilityLabel }:
 const styles = StyleSheet.create({
   pressable: {
     minHeight: theme.minTapTarget,
+  },
+  pressed: {
+    backgroundColor: theme.colors.surfaceMuted,
   },
   row: {
     minHeight: theme.minTapTarget,
