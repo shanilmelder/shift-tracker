@@ -18,6 +18,16 @@ export function clockOut(entryId: string, input: { lat: number; lng: number; ide
   return apiRequest<TimeEntry>(`/time-entries/${entryId}/clock-out`, { method: 'POST', body: input });
 }
 
+export interface GeofenceCheckResult {
+  withinRange: boolean;
+  approxDistanceM?: number;
+}
+
+/** Informational only — never blocks clocking in (FR-038). */
+export function checkGeofence(input: { shiftId: string; lat: number; lng: number }): Promise<GeofenceCheckResult> {
+  return apiRequest<GeofenceCheckResult>('/time-entries/geofence-check', { method: 'POST', body: input });
+}
+
 export function listMyTimeEntries(): Promise<TimeEntry[]> {
   return apiRequest<TimeEntry[]>('/time-entries', { query: { mine: true } });
 }
