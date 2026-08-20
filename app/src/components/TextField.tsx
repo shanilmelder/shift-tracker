@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, type TextInputProps } from 'react-native';
 import { theme } from './theme';
 
@@ -13,16 +13,26 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
  * a sighted user sees, per the constitution's Accessibility principle. Used by every form in
  * the app (paired with React Hook Form + Zod at the screen level).
  */
-export function TextField({ label, errorMessage, ...inputProps }: TextFieldProps): React.JSX.Element {
+export function TextField({ label, errorMessage, onFocus, onBlur, ...inputProps }: TextFieldProps): React.JSX.Element {
+  const [focused, setFocused] = useState(false);
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
         {...inputProps}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
         accessibilityLabel={label}
         accessibilityHint={errorMessage}
-        style={[styles.input, errorMessage ? styles.inputError : null]}
-        placeholderTextColor={theme.colors.textSecondary}
+        style={[styles.input, focused ? styles.inputFocused : null, errorMessage ? styles.inputError : null]}
+        placeholderTextColor={theme.colors.textMuted}
       />
       {errorMessage ? (
         <Text style={styles.error} accessibilityLiveRegion="polite">
@@ -38,7 +48,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   label: {
-    ...theme.typography.caption,
+    ...theme.typography.label,
     color: theme.colors.textSecondary,
     marginBottom: theme.spacing.xs,
   },
@@ -47,10 +57,13 @@ const styles = StyleSheet.create({
     minHeight: theme.minTapTarget,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderRadius: 8,
+    borderRadius: theme.radius.sm,
     paddingHorizontal: theme.spacing.sm,
     color: theme.colors.textPrimary,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.surface,
+  },
+  inputFocused: {
+    borderColor: theme.colors.borderStrong,
   },
   inputError: {
     borderColor: theme.colors.danger,

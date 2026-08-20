@@ -2,6 +2,11 @@ import React, { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import NetInfo from '@react-native-community/netinfo';
+import { useFonts } from 'expo-font';
+import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces/600SemiBold';
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { queryClient, asyncStoragePersister, registerOnlineManager } from '../src/offline/query-client';
 import { useAppStore } from '../src/stores/app.store';
 import { useSessionStore } from '../src/stores/session.store';
@@ -20,6 +25,12 @@ export default function RootLayout(): React.JSX.Element {
   const segments = useSegments();
   const { accessToken, role, hydrated, hydrate } = useSessionStore();
   const setSyncStatus = useAppStore((state) => state.setSyncStatus);
+  const [fontsLoaded] = useFonts({
+    Fraunces_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  });
 
   useEffect(() => {
     // Restores a persisted session from expo-secure-store (see session.store.ts) before the
@@ -62,7 +73,7 @@ export default function RootLayout(): React.JSX.Element {
     return unsubscribeRealtime;
   }, [accessToken]);
 
-  if (!hydrated) {
+  if (!hydrated || !fontsLoaded) {
     return <Slot />;
   }
 

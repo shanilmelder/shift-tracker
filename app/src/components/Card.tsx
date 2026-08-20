@@ -14,10 +14,12 @@ export function Card({ children, style }: CardProps): React.JSX.Element {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderWidth: 1,
-    borderRadius: 12,
-    padding: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    // Ledger's card-padding token is 24 (theme.spacing.lg), not the 16 (md) used elsewhere.
+    padding: theme.spacing.lg,
+    ...theme.shadows.raised,
   },
 });
