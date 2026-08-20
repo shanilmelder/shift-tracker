@@ -1,5 +1,6 @@
 import { supabase } from '../data/supabase-client.js';
 import { insertProfile, updateProfile, type ProfileRow } from '../data/profiles.repo.js';
+import { RESET_PASSWORD_DEEP_LINK } from '../config/app-links.js';
 
 export interface CreateUserInput {
   name: string;
@@ -57,7 +58,7 @@ export async function createUser(input: CreateUserInput): Promise<CreatedUser> {
 
     // Send the invite (email or SMS, per FR-007) so the new user sets their own password —
     // this call intentionally never has a password to hand back to the manager.
-    await supabase.auth.admin.inviteUserByEmail(input.email);
+    await supabase.auth.admin.inviteUserByEmail(input.email, { redirectTo: RESET_PASSWORD_DEEP_LINK });
 
     return toCreatedUser(profile);
   } catch (err) {

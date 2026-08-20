@@ -8,3 +8,7 @@ export const CreateSessionSchema = z.object({
 export const PasswordResetSchema = z.object({
   email: z.string().email(),
 });
+
+export const SetPasswordSchema = z.object({
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import { createSession, requestPasswordReset, getMe } from '../services/auth.service.js';
-import { CreateSessionSchema, PasswordResetSchema } from '../schemas/auth.schemas.js';
+import { createSession, requestPasswordReset, getMe, setPassword } from '../services/auth.service.js';
+import { CreateSessionSchema, PasswordResetSchema, SetPasswordSchema } from '../schemas/auth.schemas.js';
 import '../types.js';
 
 /**
@@ -27,6 +27,19 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       return;
     }
     await requestPasswordReset(parsed.data.email);
+    await reply.code(204).send();
+  });
+
+  // Authenticated by design (see auth.service.ts's setPassword doc comment): an invite/recovery
+  // access_token from Supabase's email redirect is a normal bearer token, so authMiddleware
+  // already verifies it with no extra handling — no separate public token-verification route.
+  app.patch('/v1/auth/password', async (request, reply) => {
+    const parsed = SetPasswordSchema.safeParse(request.body);
+    if (!parsed.success) {
+      await reply.code(400).send({ error: { code: 'VALIDATION_ERROR', message: parsed.error.message } });
+      return;
+    }
+    await setPassword(request.caller!.id, parsed.data.password);
     await reply.code(204).send();
   });
 

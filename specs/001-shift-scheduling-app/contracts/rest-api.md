@@ -15,6 +15,7 @@ are an implementation-phase task, not a planning artifact.
 |---|---|---|---|
 | POST | `/v1/auth/session` | none (public) | Exchanges email+password or magic-link callback for a Supabase session; proxies to Supabase Auth. **No sign-up endpoint exists anywhere in this API.** |
 | POST | `/v1/auth/password-reset` | none (public) | Triggers Supabase Auth's password-reset email flow. |
+| PATCH | `/v1/auth/password` | authenticated | Body: `password`. Sets the caller's password and flips `invite_status` to `accepted`. Reachable both by a signed-in user changing their password and by a new/reset-requesting user whose invite/recovery link's `access_token` (a normal Supabase session JWT) is used as the bearer token — no separate token-verification path. |
 | POST | `/v1/auth/logout` | authenticated | Invalidates the current session. |
 | GET | `/v1/auth/me` | authenticated | Returns the caller's own profile + role + location. |
 

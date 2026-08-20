@@ -24,3 +24,12 @@ export function requestPasswordReset(email: string): Promise<void> {
 export function fetchMe(overrideAccessToken?: string): Promise<MeResponse> {
   return apiRequest<MeResponse>('/auth/me', { overrideAccessToken });
 }
+
+/**
+ * Sets the caller's password. `accessToken` is the invite/recovery link's token when
+ * completing an invite or reset (see reset-password.tsx) — a normal Supabase session JWT, so
+ * it works as a bearer token here the same way a signed-in user's own token would.
+ */
+export function setPassword(password: string, accessToken: string): Promise<void> {
+  return apiRequest<void>('/auth/password', { method: 'PATCH', body: { password }, overrideAccessToken: accessToken });
+}
