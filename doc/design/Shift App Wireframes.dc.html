@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/tokens/radius.css">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/tokens/base.css">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/styles.css">
+<script src="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:#F0EEE9;font-family:Inter,system-ui,sans-serif}
+a{color:var(--accent)}a:hover{color:var(--accent-hover)}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 Inter,system-ui;color:#1a1a1a}
+.dv-sub{font:400 12px/1.5 Inter,system-ui;color:rgba(0,0,0,.5);margin:0 0 26px;max-width:660px}
+.dv-grp{font:500 11px/1 Inter,system-ui;letter-spacing:.08em;text-transform:uppercase;color:rgba(0,0,0,.42);margin:34px 0 14px;padding-bottom:8px;border-bottom:1px solid rgba(0,0,0,.09)}
+.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 Inter,system-ui;color:rgba(0,0,0,.55)}
+.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}
+.dv-next{margin:26px 0 0;font:12px/1.5 Inter,system-ui;color:rgba(0,0,0,.5)}
+.s{position:relative;height:100%;background:var(--bg);color:var(--text);display:flex;flex-direction:column;overflow:hidden}
+.hd{flex:none;padding:58px 20px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.h1{font:600 20px/1.2 Fraunces,Georgia,serif}
+.bd{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:16px 20px 96px;overflow:hidden}
+.c{flex:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.r{display:flex;align-items:center;gap:10px}
+.rb{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.l{height:8px;border-radius:4px;background:var(--surface-muted);flex:none}
+.sq{background:var(--surface-muted);border-radius:6px;flex:none}
+.t{font:500 13px/1.35 Inter}
+.tb{font:600 15px/1.3 Inter}
+.t2{font:400 12px/1.35 Inter;color:var(--text-secondary)}
+.lbl{font:500 10px/1 Inter;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted)}
+.btn{background:var(--accent);color:#fff;border-radius:8px;padding:13px;text-align:center;font:500 14px Inter}
+.btn2{border:1px solid var(--border-strong);border-radius:8px;padding:11px;text-align:center;font:500 13px Inter;color:var(--text)}
+.pill{border:1px solid var(--border);border-radius:999px;padding:5px 10px;font:500 11px Inter;color:var(--text-secondary);background:var(--surface);white-space:nowrap;flex:none}
+.tab,.clk,.lbl,.num{white-space:nowrap}
+.pill.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.inp{border:1px solid var(--border);border-radius:4px;padding:11px 12px;font:400 13px Inter;color:var(--text-muted);background:var(--surface)}
+.num{font-variant-numeric:tabular-nums}
+.tabs{position:absolute;bottom:0;left:0;right:0;height:80px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-around;padding:9px 6px 0}
+.tab{width:60px;display:flex;flex-direction:column;align-items:center;gap:5px;font:500 9px Inter;color:var(--text-muted)}
+.tab.on{color:var(--accent)}
+.tabi{width:20px;height:20px;border:1.5px solid currentColor;border-radius:5px}
+.clk{width:54px;height:54px;margin-top:-16px;border-radius:999px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font:600 9px/1.15 Inter}
+.gr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gr7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.fbox{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font:500 12px/1.3 Inter;color:var(--text)}
+.fcol{display:flex;flex-direction:column;gap:10px;width:190px}
+.fh{font:500 10px/1 Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px}
+</style></helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Shift management app — low-fi screen set</span></div>
+<p class="dv-sub">26 screens plus a flow map, multi-location, geofenced clock-in, bottom tabs with a centre clock button. In-app chat omitted per the brief. Grey blocks are placeholder content; nothing here is final copy or layout detail.</p>
+
+<div class="dv-grp">Onboarding &amp; auth</div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a"><div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Splash</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s" style="align-items:center;justify-content:center;gap:14px">
+<div class="sq" style="width:56px;height:56px;border-radius:14px"></div>
+<div style="font:600 26px Fraunces,Georgia,serif">Shifts</div>
+<div class="t2">Loading your day</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1b"><div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Login</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s"><div class="bd" style="padding-top:96px;gap:14px">
+<div style="font:600 24px Fraunces,Georgia,serif">Sign in</div>
+<div class="t2">Use the email your workplace invited.</div>
+<div class="inp" style="margin-top:8px">Email</div>
+<div class="inp">Password</div>
+<div class="btn" style="margin-top:6px">Sign in</div>
+<div class="t2" style="text-align:center">Forgot password</div>
+<div style="flex:1"></div>
+<div class="btn2">Join with company code</div>
+</div></div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1c"><div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Sign up / accept invite</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s"><div class="bd" style="padding-top:96px;gap:12px">
+<div style="font:600 24px Fraunces,Georgia,serif">Join your team</div>
+<div class="c"><div class="lbl">Invited by</div><div class="t">Northgate Retail — Store 04</div></div>
+<div class="inp">Company code or invite link</div>
+<div class="inp">Full name</div>
+<div class="inp">Email</div>
+<div class="inp">Password</div>
+<div class="btn">Create account</div>
+<div class="t2" style="text-align:center">Already have an account? Sign in</div>
+</div></div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1d"><div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Forgot / reset password</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s"><div class="bd" style="padding-top:96px;gap:14px">
+<div style="font:600 24px Fraunces,Georgia,serif">Reset password</div>
+<div class="t2">We will email a reset link. The link expires in 30 minutes.</div>
+<div class="inp">Email</div>
+<div class="btn">Send reset link</div>
+<div class="c" style="margin-top:20px"><div class="lbl">Second state</div><div class="t">New password</div><div class="inp">New password</div><div class="inp">Confirm password</div><div class="btn2">Save password</div></div>
+</div></div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1e"><div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Role selection (self-serve setup)</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s"><div class="bd" style="padding-top:96px;gap:12px">
+<div style="font:600 24px Fraunces,Georgia,serif">How will you use this?</div>
+<div class="c" style="border-color:var(--accent)"><div class="rb"><div class="tb">I work shifts</div><div class="sq" style="width:18px;height:18px;border-radius:999px;background:var(--accent)"></div></div><div class="t2">See your schedule, clock in, request swaps and time off.</div></div>
+<div class="c"><div class="rb"><div class="tb">I manage a team</div><div class="sq" style="width:18px;height:18px;border-radius:999px"></div></div><div class="t2">Build schedules, approve requests, run reports across locations.</div></div>
+<div class="btn">Continue</div>
+<div class="t2">Managers still get the employee screens for their own shifts.</div>
+</div></div>
+</x-import>
+</div></div>
+
+</div>
+
+<div class="dv-grp">Employee — core</div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1f"><div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Home / dashboard</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div><div class="lbl">Thu 20 Aug 2026</div><div class="h1">Today</div></div><div class="sq" style="width:34px;height:34px;border-radius:999px"></div></div>
+<div class="bd">
+<div class="c" style="border-color:var(--accent)"><div class="rb"><div><div class="lbl">Next shift</div><div class="tb num">09:00 — 17:30</div><div class="t2">Store 04 · Floor · Nugegoda</div></div><div class="pill on">Starts in 40m</div></div><div class="btn">Clock in</div></div>
+<div class="gr2">
+<div class="c" style="gap:4px"><div class="lbl">This week</div><div class="tb num">32.5 h</div></div>
+<div class="c" style="gap:4px"><div class="lbl">Shifts left</div><div class="tb num">3</div></div>
+</div>
+<div class="c"><div class="rb"><div class="lbl">Activity</div><div class="t2">See all</div></div>
+<div class="r"><div class="sq" style="width:8px;height:8px;border-radius:999px;background:var(--accent)"></div><div class="t">Swap with A. Perera approved</div></div>
+<div class="r"><div class="sq" style="width:8px;height:8px;border-radius:999px"></div><div class="t">2 open shifts posted for Sat</div></div>
+</div>
+<div class="c"><div class="lbl">Upcoming</div>
+<div class="rb"><div class="t">Fri 21 Aug · Store 04</div><div class="t2 num">12:00–20:00</div></div>
+<div class="rb"><div class="t">Sun 23 Aug · Store 11</div><div class="t2 num">09:00–15:00</div></div>
+</div>
+</div>
+<div class="tabs"><div class="tab on"><div class="tabi"></div>Home</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="clk">Clock<br>in</div><div class="tab"><div class="tabi"></div>Requests</div><div class="tab"><div class="tabi"></div>Me</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1g"><div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>My schedule (day / week / month)</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Schedule</div><div class="r"><div class="pill">Day</div><div class="pill on">Week</div><div class="pill">Month</div></div></div>
+<div class="bd" style="gap:10px">
+<div class="gr7">
+<div class="t2" style="text-align:center">M</div><div class="t2" style="text-align:center">T</div><div class="t2" style="text-align:center">W</div><div class="t2" style="text-align:center">T</div><div class="t2" style="text-align:center">F</div><div class="t2" style="text-align:center">S</div><div class="t2" style="text-align:center">S</div>
+<div class="sq" style="height:26px"></div><div class="sq" style="height:26px"></div><div class="sq" style="height:26px;background:var(--accent-soft)"></div><div class="sq" style="height:26px;background:var(--accent-soft)"></div><div class="sq" style="height:26px;background:var(--accent-soft)"></div><div class="sq" style="height:26px"></div><div class="sq" style="height:26px;background:var(--accent-soft)"></div>
+</div>
+<div class="lbl" style="margin-top:6px">Thu 20 Aug</div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div><div class="t num">09:00 — 17:30</div><div class="t2">Floor · Store 04</div></div><div class="pill">Confirmed</div></div></div>
+<div class="lbl">Fri 21 Aug</div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div><div class="t num">12:00 — 20:00</div><div class="t2">Till · Store 04</div></div><div class="pill">Swap sent</div></div></div>
+<div class="lbl">Sun 23 Aug</div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div><div class="t num">09:00 — 15:00</div><div class="t2">Floor · Store 11</div></div><div class="pill">Other site</div></div></div>
+<div class="c" style="padding:10px 12px;border-style:dashed"><div class="t2">Sat 22 Aug — no shift. 2 open shifts available.</div></div>
+</div>
+<div class="tabs"><div class="tab"><div class="tabi"></div>Home</div><div class="tab on"><div class="tabi"></div>Schedule</div><div class="clk">Clock<br>in</div><div class="tab"><div class="tabi"></div>Requests</div><div class="tab"><div class="tabi"></div>Me</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1h"><div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Shift details</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div><div class="lbl">Thu 20 Aug 2026</div><div class="h1">Shift details</div></div><div class="t2">Close</div></div>
+<div class="bd">
+<div class="c"><div class="rb"><div class="tb num">09:00 — 17:30</div><div class="pill on">8.5 h</div></div><div class="t2">30 min unpaid break</div></div>
+<div class="c" style="gap:10px">
+<div class="rb"><div class="lbl">Role</div><div class="t">Floor associate</div></div>
+<div class="rb"><div class="lbl">Location</div><div class="t">Store 04 · Nugegoda</div></div>
+<div class="rb"><div class="lbl">Department</div><div class="t">Front of house</div></div>
+<div class="rb"><div class="lbl">Manager</div><div class="t">R. Fernando</div></div>
+</div>
+<div class="c"><div class="lbl">Notes</div><div class="t2">Stock delivery lands at 10:00. Two extra on the floor until noon.</div></div>
+<div class="c"><div class="lbl">On this shift</div><div class="r"><div class="sq" style="width:28px;height:28px;border-radius:999px"></div><div class="sq" style="width:28px;height:28px;border-radius:999px"></div><div class="sq" style="width:28px;height:28px;border-radius:999px"></div><div class="t2">+2</div></div></div>
+<div class="btn2">Request swap</div>
+<div class="btn2">Request time off</div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1i"><div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Availability &amp; recurring time off</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Availability</div><div class="t2">Save</div></div>
+<div class="bd" style="gap:10px">
+<div class="t2">Recurring weekly. Managers see this in the schedule builder.</div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="t">Monday</div><div class="pill on">09:00 — 18:00</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="t">Tuesday</div><div class="pill on">09:00 — 18:00</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="t">Wednesday</div><div class="pill">Unavailable</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="t">Thursday</div><div class="pill on">Any time</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="t">Friday</div><div class="pill on">12:00 — 22:00</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="t">Weekend</div><div class="pill">Evenings only</div></div></div>
+<div class="c" style="border-style:dashed"><div class="lbl">Max hours</div><div class="rb"><div class="t2">Per week</div><div class="t num">40 h</div></div></div>
+</div>
+<div class="tabs"><div class="tab"><div class="tabi"></div>Home</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="clk">Clock<br>in</div><div class="tab on"><div class="tabi"></div>Requests</div><div class="tab"><div class="tabi"></div>Me</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1j"><div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>Shift swap request</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div><div class="lbl">Step 2 of 3</div><div class="h1">Request swap</div></div><div class="t2">Cancel</div></div>
+<div class="bd">
+<div class="c"><div class="lbl">Giving away</div><div class="rb"><div class="t num">Fri 21 Aug · 12:00 — 20:00</div><div class="t2">Change</div></div></div>
+<div class="lbl">Eligible coworkers</div>
+<div class="c" style="padding:10px 12px;border-color:var(--accent)"><div class="rb"><div class="r"><div class="sq" style="width:32px;height:32px;border-radius:999px"></div><div><div class="t">A. Perera</div><div class="t2">Same role · free that day</div></div></div><div class="sq" style="width:18px;height:18px;border-radius:999px;background:var(--accent)"></div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:32px;height:32px;border-radius:999px"></div><div><div class="t">S. Jayawardena</div><div class="t2">Same role · would hit 42 h</div></div></div><div class="sq" style="width:18px;height:18px;border-radius:999px"></div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:32px;height:32px;border-radius:999px"></div><div><div class="t">M. De Silva</div><div class="t2">Store 11 · trained for Till</div></div></div><div class="sq" style="width:18px;height:18px;border-radius:999px"></div></div></div>
+<div class="inp">Reason (optional)</div>
+<div class="btn">Send for approval</div>
+<div class="t2">Goes to A. Perera, then to your manager.</div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1k"><div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>Time-off request &amp; tracking</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Time off</div><div class="pill on">New request</div></div>
+<div class="bd">
+<div class="c"><div class="lbl">Balance</div><div class="rb"><div class="tb num">11.5 days</div><div class="t2">Used 8.5 of 20</div></div><div class="sq" style="height:6px;border-radius:999px"><div style="width:42%;height:6px;border-radius:999px;background:var(--accent)"></div></div></div>
+<div class="c"><div class="lbl">New request</div><div class="rb"><div class="inp" style="flex:1">From</div><div class="inp" style="flex:1">To</div></div><div class="inp">Type — annual leave</div><div class="inp">Note to manager</div><div class="btn">Submit</div></div>
+<div class="lbl">History</div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div><div class="t">2 — 4 Sep 2026</div><div class="t2">Annual leave · 3 days</div></div><div class="pill">Pending</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div><div class="t">14 Jul 2026</div><div class="t2">Sick · 1 day</div></div><div class="pill on">Approved</div></div></div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1l"><div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>Notifications / activity</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Activity</div><div class="t2">Mark all read</div></div>
+<div class="bd" style="gap:8px">
+<div class="r"><div class="pill on">All</div><div class="pill">Shifts</div><div class="pill">Requests</div></div>
+<div class="c" style="padding:10px 12px"><div class="r"><div class="sq" style="width:8px;height:8px;border-radius:999px;background:var(--accent)"></div><div><div class="t">Swap approved — Fri 21 Aug</div><div class="t2">R. Fernando · 20 min ago</div></div></div></div>
+<div class="c" style="padding:10px 12px"><div class="r"><div class="sq" style="width:8px;height:8px;border-radius:999px;background:var(--accent)"></div><div><div class="t">2 open shifts at Store 11</div><div class="t2">Sat 22 Aug · claim first come</div></div></div></div>
+<div class="c" style="padding:10px 12px"><div class="r"><div class="sq" style="width:8px;height:8px;border-radius:999px"></div><div><div class="t">Schedule published — week of 24 Aug</div><div class="t2">Yesterday</div></div></div></div>
+<div class="c" style="padding:10px 12px"><div class="r"><div class="sq" style="width:8px;height:8px;border-radius:999px"></div><div><div class="t">Missed clock-out on 18 Aug</div><div class="t2">Manager corrected to 17:35</div></div></div></div>
+<div class="c" style="padding:10px 12px"><div class="r"><div class="sq" style="width:8px;height:8px;border-radius:999px"></div><div><div class="t">Announcement — stocktake Sunday</div><div class="t2">2 days ago</div></div></div></div>
+</div>
+<div class="tabs"><div class="tab"><div class="tabi"></div>Home</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="clk">Clock<br>in</div><div class="tab"><div class="tabi"></div>Requests</div><div class="tab"><div class="tabi"></div>Me</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1m"><div class="dv-olabel"><a class="dv-oid" href="#1m">1m</a>Time clock — geofence check</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Clock in</div><div class="pill">Store 04</div></div>
+<div class="bd" style="gap:14px">
+<div class="c" style="gap:10px"><div class="lbl">Location check</div><div class="sq" style="height:120px;display:flex;align-items:center;justify-content:center"><div class="t2">Map placeholder — geofence radius</div></div><div class="r"><div class="sq" style="width:8px;height:8px;border-radius:999px;background:var(--accent)"></div><div class="t2">Inside 120 m of Store 04</div></div></div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0">
+<div class="lbl">Scheduled 09:00 — 17:30</div>
+<div style="width:150px;height:150px;border-radius:999px;background:var(--accent);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><div style="font:600 20px Inter">Clock in</div><div style="font:400 12px Inter;opacity:.8">08:58</div></div>
+<div class="t2">Out of range? Request a manual entry.</div>
+</div>
+<div class="c" style="border-style:dashed"><div class="lbl">While clocked in</div><div class="rb"><div class="t num">Elapsed 4:12</div><div class="pill">Start break</div></div></div>
+</div>
+<div class="tabs"><div class="tab"><div class="tabi"></div>Home</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="clk">Clock<br>out</div><div class="tab"><div class="tabi"></div>Requests</div><div class="tab"><div class="tabi"></div>Me</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1n"><div class="dv-olabel"><a class="dv-oid" href="#1n">1n</a>Timesheet / hours worked</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Timesheet</div><div class="pill on">16 — 22 Aug</div></div>
+<div class="bd" style="gap:10px">
+<div class="gr2"><div class="c" style="gap:4px"><div class="lbl">Worked</div><div class="tb num">32.5 h</div></div><div class="c" style="gap:4px"><div class="lbl">Overtime</div><div class="tb num">1.5 h</div></div></div>
+<div class="c" style="gap:0;padding:0">
+<div class="rb" style="padding:10px 12px;border-bottom:1px solid var(--border)"><div class="lbl">Date</div><div class="lbl">In / out</div><div class="lbl">Hours</div></div>
+<div class="rb" style="padding:10px 12px;border-bottom:1px solid var(--border)"><div class="t">Mon 17</div><div class="t2 num">09:02 — 17:31</div><div class="t num">8.0</div></div>
+<div class="rb" style="padding:10px 12px;border-bottom:1px solid var(--border)"><div class="t">Tue 18</div><div class="t2 num">09:00 — 17:35</div><div class="t num">8.1</div></div>
+<div class="rb" style="padding:10px 12px;border-bottom:1px solid var(--border)"><div class="t">Wed 19</div><div class="t2 num">12:04 — 20:00</div><div class="t num">7.4</div></div>
+<div class="rb" style="padding:10px 12px"><div class="t">Thu 20</div><div class="t2 num">In progress</div><div class="t num">—</div></div>
+</div>
+<div class="c" style="border-style:dashed"><div class="rb"><div class="t2">Wed 19 flagged — clocked in 4 min late</div><div class="t2">Dispute</div></div></div>
+<div class="btn2">Export week</div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1o"><div class="dv-olabel"><a class="dv-oid" href="#1o">1o</a>Team directory</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Team</div><div class="t2">Filter</div></div>
+<div class="bd" style="gap:8px">
+<div class="inp">Search name or role</div>
+<div class="r"><div class="pill on">Store 04</div><div class="pill">Store 11</div><div class="pill">All sites</div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:34px;height:34px;border-radius:999px"></div><div><div class="t">R. Fernando</div><div class="t2">Store manager</div></div></div><div class="pill">Call</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:34px;height:34px;border-radius:999px"></div><div><div class="t">A. Perera</div><div class="t2">Floor · on shift now</div></div></div><div class="pill">Call</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:34px;height:34px;border-radius:999px"></div><div><div class="t">S. Jayawardena</div><div class="t2">Till</div></div></div><div class="pill">Call</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:34px;height:34px;border-radius:999px"></div><div><div class="t">M. De Silva</div><div class="t2">Floor · Store 11</div></div></div><div class="pill">Call</div></div></div>
+</div>
+<div class="tabs"><div class="tab"><div class="tabi"></div>Home</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="clk">Clock<br>in</div><div class="tab"><div class="tabi"></div>Requests</div><div class="tab on"><div class="tabi"></div>Me</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1p"><div class="dv-olabel"><a class="dv-oid" href="#1p">1p</a>Profile &amp; settings</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Me</div></div>
+<div class="bd" style="gap:10px">
+<div class="c"><div class="r"><div class="sq" style="width:48px;height:48px;border-radius:999px"></div><div><div class="tb">N. Wijesinghe</div><div class="t2">Floor associate · Store 04</div></div></div></div>
+<div class="c" style="gap:0;padding:0">
+<div class="rb" style="padding:12px"><div class="t">Availability</div><div class="t2">Edit</div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Timesheet</div><div class="t2">View</div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Time off</div><div class="t2 num">11.5 days</div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Notification settings</div><div class="t2">›</div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Help &amp; support</div><div class="t2">›</div></div>
+</div>
+<div class="btn2" style="color:var(--danger);border-color:var(--danger)">Sign out</div>
+</div>
+<div class="tabs"><div class="tab"><div class="tabi"></div>Home</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="clk">Clock<br>in</div><div class="tab"><div class="tabi"></div>Requests</div><div class="tab on"><div class="tabi"></div>Me</div></div>
+</div>
+</x-import>
+</div></div>
+
+</div>
+
+<div class="dv-grp">Manager / admin</div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1q"><div class="dv-olabel"><a class="dv-oid" href="#1q">1q</a>Manager dashboard</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div><div class="lbl">Thu 20 Aug 2026</div><div class="h1">Overview</div></div><div class="pill on">Store 04</div></div>
+<div class="bd">
+<div class="gr2">
+<div class="c" style="gap:4px"><div class="lbl">Coverage today</div><div class="tb num">94%</div></div>
+<div class="c" style="gap:4px"><div class="lbl">Open shifts</div><div class="tb num">3</div></div>
+<div class="c" style="gap:4px"><div class="lbl">Pending approvals</div><div class="tb num" style="color:var(--accent)">5</div></div>
+<div class="c" style="gap:4px"><div class="lbl">Clock exceptions</div><div class="tb num" style="color:var(--expense)">2</div></div>
+</div>
+<div class="c"><div class="rb"><div class="lbl">Coverage this week</div><div class="t2">Details</div></div>
+<div class="r" style="align-items:flex-end;gap:6px;height:70px">
+<div class="sq" style="flex:1;height:60%;background:var(--accent)"></div><div class="sq" style="flex:1;height:80%;background:var(--accent)"></div><div class="sq" style="flex:1;height:45%;background:var(--expense)"></div><div class="sq" style="flex:1;height:90%;background:var(--accent)"></div><div class="sq" style="flex:1;height:70%;background:var(--accent)"></div><div class="sq" style="flex:1;height:35%;background:var(--expense)"></div><div class="sq" style="flex:1;height:55%;background:var(--accent)"></div>
+</div></div>
+<div class="c"><div class="lbl">Needs you</div>
+<div class="rb"><div class="t">Swap — N. Wijesinghe → A. Perera</div><div class="pill">Review</div></div>
+<div class="rb"><div class="t">Time off — 2–4 Sep</div><div class="pill">Review</div></div>
+<div class="rb"><div class="t">Sat evening unstaffed · Store 11</div><div class="pill">Post</div></div>
+</div>
+</div>
+<div class="tabs"><div class="tab on"><div class="tabi"></div>Overview</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="tab"><div class="tabi"></div>Approvals</div><div class="tab"><div class="tabi"></div>Team</div><div class="tab"><div class="tabi"></div>More</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1r"><div class="dv-olabel"><a class="dv-oid" href="#1r">1r</a>Schedule builder</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div><div class="lbl">Draft · week of 24 Aug</div><div class="h1">Build</div></div><div class="pill on">Publish</div></div>
+<div class="bd" style="gap:10px">
+<div class="r"><div class="pill">Templates</div><div class="pill">Repeat week</div><div class="pill">Auto-fill</div></div>
+<div class="c" style="padding:0;gap:0">
+<div class="rb" style="padding:8px 12px;border-bottom:1px solid var(--border)"><div class="lbl">Staff</div><div class="lbl">Mon — Sun</div></div>
+<div class="r" style="padding:8px 12px;border-bottom:1px solid var(--border)"><div class="t2" style="width:74px">A. Perera</div><div class="gr7" style="flex:1"><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px"></div></div></div>
+<div class="r" style="padding:8px 12px;border-bottom:1px solid var(--border)"><div class="t2" style="width:74px">N. Wijesinghe</div><div class="gr7" style="flex:1"><div class="sq" style="height:22px"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px;border:1px dashed var(--border-strong)"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div></div></div>
+<div class="r" style="padding:8px 12px;border-bottom:1px solid var(--border)"><div class="t2" style="width:74px">S. Jaya…</div><div class="gr7" style="flex:1"><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px;background:var(--accent-soft)"></div><div class="sq" style="height:22px"></div></div></div>
+<div class="r" style="padding:8px 12px"><div class="t2" style="width:74px">Unfilled</div><div class="gr7" style="flex:1"><div class="sq" style="height:22px"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px"></div><div class="sq" style="height:22px;background:var(--expense-soft);border:1px solid var(--expense)"></div><div class="sq" style="height:22px;background:var(--expense-soft);border:1px solid var(--expense)"></div></div></div>
+</div>
+<div class="c" style="border-style:dashed"><div class="lbl">Selected cell</div><div class="rb"><div class="t">Sat 22 · Till</div><div class="t2">Assign / post open</div></div><div class="t2">Drag to move. Long-press to copy across days.</div></div>
+<div class="rb"><div class="t2 num">Projected 214 h · 12 shifts unfilled 2</div><div class="pill">Cost view</div></div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1s"><div class="dv-olabel"><a class="dv-oid" href="#1s">1s</a>Staff management</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Staff</div><div class="pill on">Add</div></div>
+<div class="bd" style="gap:8px">
+<div class="inp">Search staff</div>
+<div class="r"><div class="pill on">Active 24</div><div class="pill">Invited 3</div><div class="pill">Archived</div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:32px;height:32px;border-radius:999px"></div><div><div class="t">A. Perera</div><div class="t2">Floor · Store 04 · LKR 320/h</div></div></div><div class="t2">Edit</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:32px;height:32px;border-radius:999px"></div><div><div class="t">N. Wijesinghe</div><div class="t2">Floor · Store 04 · LKR 300/h</div></div></div><div class="t2">Edit</div></div></div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div class="r"><div class="sq" style="width:32px;height:32px;border-radius:999px"></div><div><div class="t">M. De Silva</div><div class="t2">Floor · Store 11 · LKR 300/h</div></div></div><div class="t2">Edit</div></div></div>
+<div class="c" style="border-style:dashed"><div class="lbl">Edit sheet</div><div class="t2">Name · role · pay rate · locations · permissions · max weekly hours</div></div>
+</div>
+<div class="tabs"><div class="tab"><div class="tabi"></div>Overview</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="tab"><div class="tabi"></div>Approvals</div><div class="tab on"><div class="tabi"></div>Team</div><div class="tab"><div class="tabi"></div>More</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1t"><div class="dv-olabel"><a class="dv-oid" href="#1t">1t</a>Approvals queue</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Approvals</div><div class="pill on num">5</div></div>
+<div class="bd" style="gap:10px">
+<div class="r"><div class="pill on">All</div><div class="pill">Swaps 2</div><div class="pill">Time off 1</div><div class="pill">Clock 2</div></div>
+<div class="c"><div class="lbl">Swap</div><div class="t">N. Wijesinghe → A. Perera</div><div class="t2 num">Fri 21 Aug · 12:00 — 20:00 · Till · Store 04</div><div class="t2">Both trained. A. Perera at 36 h after swap.</div><div class="r"><div class="btn" style="flex:1;padding:10px">Approve</div><div class="btn2" style="flex:1">Decline</div></div></div>
+<div class="c"><div class="lbl">Time off</div><div class="t">S. Jayawardena · 2 — 4 Sep</div><div class="t2">Annual leave · 3 days · 11.5 remaining</div><div class="t2" style="color:var(--expense)">Leaves Thu evening short one person.</div><div class="r"><div class="btn" style="flex:1;padding:10px">Approve</div><div class="btn2" style="flex:1">Decline</div></div></div>
+<div class="c"><div class="lbl">Clock exception</div><div class="t">M. De Silva · missed clock-out</div><div class="t2 num">18 Aug · in 09:00 · out —</div><div class="r"><div class="inp" style="flex:1">Set out 17:30</div><div class="btn2">Confirm</div></div></div>
+</div>
+<div class="tabs"><div class="tab"><div class="tabi"></div>Overview</div><div class="tab"><div class="tabi"></div>Schedule</div><div class="tab on"><div class="tabi"></div>Approvals</div><div class="tab"><div class="tabi"></div>Team</div><div class="tab"><div class="tabi"></div>More</div></div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1u"><div class="dv-olabel"><a class="dv-oid" href="#1u">1u</a>Open shift board</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Open shifts</div><div class="pill on">Post shift</div></div>
+<div class="bd" style="gap:10px">
+<div class="r"><div class="pill on">All sites</div><div class="pill">Store 04</div><div class="pill">Store 11</div></div>
+<div class="c"><div class="rb"><div><div class="t num">Sat 22 Aug · 10:00 — 18:00</div><div class="t2">Till · Store 04</div></div><div class="pill on">3 claims</div></div><div class="t2">Claims: A. Perera, M. De Silva, S. Jayawardena</div><div class="r"><div class="btn" style="flex:1;padding:10px">Assign</div><div class="btn2">Unpost</div></div></div>
+<div class="c"><div class="rb"><div><div class="t num">Sat 22 Aug · 14:00 — 22:00</div><div class="t2">Floor · Store 11</div></div><div class="pill">No claims</div></div><div class="t2">Posted 2 days ago · 9 eligible notified</div></div>
+<div class="c"><div class="rb"><div><div class="t num">Sun 23 Aug · 09:00 — 15:00</div><div class="t2">Stockroom · Store 11</div></div><div class="pill">1 claim</div></div></div>
+<div class="c" style="border-style:dashed"><div class="t2">Employee view: same list, with a Claim button and no assign controls.</div></div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1v"><div class="dv-olabel"><a class="dv-oid" href="#1v">1v</a>Reports / analytics</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Reports</div><div class="pill">Aug 2026</div></div>
+<div class="bd" style="gap:10px">
+<div class="r"><div class="pill on">Labour cost</div><div class="pill">Hours</div><div class="pill">Attendance</div></div>
+<div class="c"><div class="lbl">Labour cost</div><div class="tb num">LKR 1,842,300.00</div><div class="t2">12.4% above last month</div><div class="r" style="align-items:flex-end;gap:5px;height:80px">
+<div class="sq" style="flex:1;height:50%;background:var(--chart-1)"></div><div class="sq" style="flex:1;height:65%;background:var(--chart-1)"></div><div class="sq" style="flex:1;height:40%;background:var(--chart-1)"></div><div class="sq" style="flex:1;height:75%;background:var(--chart-1)"></div><div class="sq" style="flex:1;height:90%;background:var(--chart-1)"></div><div class="sq" style="flex:1;height:60%;background:var(--chart-1)"></div><div class="sq" style="flex:1;height:30%;background:var(--chart-1)"></div>
+</div></div>
+<div class="c" style="padding:0;gap:0">
+<div class="rb" style="padding:10px 12px;border-bottom:1px solid var(--border)"><div class="lbl">Location</div><div class="lbl">Hours</div><div class="lbl">Cost</div></div>
+<div class="rb" style="padding:10px 12px;border-bottom:1px solid var(--border)"><div class="t">Store 04</div><div class="t num">1,120</div><div class="t num">1,024,000</div></div>
+<div class="rb" style="padding:10px 12px;border-bottom:1px solid var(--border)"><div class="t">Store 11</div><div class="t num">680</div><div class="t num">612,300</div></div>
+<div class="rb" style="padding:10px 12px"><div class="t">Warehouse</div><div class="t num">240</div><div class="t num">206,000</div></div>
+</div>
+<div class="btn2">Export CSV</div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1w"><div class="dv-olabel"><a class="dv-oid" href="#1w">1w</a>Locations &amp; departments</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Locations</div><div class="pill on">Add</div></div>
+<div class="bd" style="gap:10px">
+<div class="c"><div class="rb"><div class="tb">Store 04 — Nugegoda</div><div class="t2">Edit</div></div><div class="t2">14 staff · departments: Front of house, Till, Stockroom</div><div class="rb"><div class="t2">Geofence radius</div><div class="t num">120 m</div></div></div>
+<div class="c"><div class="rb"><div class="tb">Store 11 — Kandy</div><div class="t2">Edit</div></div><div class="t2">8 staff · departments: Floor, Till</div><div class="rb"><div class="t2">Geofence radius</div><div class="t num">150 m</div></div></div>
+<div class="c"><div class="rb"><div class="tb">Warehouse — Kelaniya</div><div class="t2">Edit</div></div><div class="t2">5 staff · departments: Picking, Dispatch</div><div class="rb"><div class="t2">Geofence radius</div><div class="t num">300 m</div></div></div>
+<div class="c" style="border-style:dashed"><div class="lbl">Edit sheet</div><div class="t2">Name · address · map pin · geofence radius · departments · roles · opening hours</div></div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1x"><div class="dv-olabel"><a class="dv-oid" href="#1x">1x</a>Broadcast / announcements</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Announcement</div><div class="t2">Cancel</div></div>
+<div class="bd" style="gap:12px">
+<div class="c"><div class="lbl">Send to</div><div class="r" style="flex-wrap:wrap"><div class="pill on">Store 04</div><div class="pill">Store 11</div><div class="pill">Sat 22 shift</div><div class="pill">All staff</div></div><div class="t2">14 people</div></div>
+<div class="inp">Subject</div>
+<div class="c" style="padding:0"><div class="inp" style="border:none;min-height:110px">Message</div></div>
+<div class="rb"><div class="t2">Require read receipt</div><div class="sq" style="width:40px;height:24px;border-radius:999px;background:var(--accent)"></div></div>
+<div class="btn">Send</div>
+<div class="lbl" style="margin-top:8px">Sent</div>
+<div class="c" style="padding:10px 12px"><div class="rb"><div><div class="t">Stocktake Sunday</div><div class="t2">18 Aug · 12 of 14 read</div></div><div class="t2">›</div></div></div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+</div>
+
+<div class="dv-grp">Shared</div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1y"><div class="dv-olabel"><a class="dv-oid" href="#1y">1y</a>Notification settings</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Notifications</div></div>
+<div class="bd" style="gap:10px">
+<div class="c" style="padding:0;gap:0">
+<div class="rb" style="padding:12px"><div class="t">Schedule published</div><div class="sq" style="width:40px;height:24px;border-radius:999px;background:var(--accent)"></div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Shift reminder</div><div class="sq" style="width:40px;height:24px;border-radius:999px;background:var(--accent)"></div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t2">Remind me</div><div class="pill">1 hour before</div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Open shifts posted</div><div class="sq" style="width:40px;height:24px;border-radius:999px;background:var(--accent)"></div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Swap &amp; time-off updates</div><div class="sq" style="width:40px;height:24px;border-radius:999px;background:var(--accent)"></div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Announcements</div><div class="sq" style="width:40px;height:24px;border-radius:999px"></div></div>
+</div>
+<div class="c"><div class="lbl">Quiet hours</div><div class="rb"><div class="t2">No pushes between</div><div class="t num">22:00 — 07:00</div></div></div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+<div class="dv-opt" id="1z"><div class="dv-olabel"><a class="dv-oid" href="#1z">1z</a>Help &amp; support</div><div class="dv-card" style="width:402px">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+<div class="s">
+<div class="hd"><div class="h1">Help</div></div>
+<div class="bd" style="gap:10px">
+<div class="inp">Search help</div>
+<div class="c" style="padding:0;gap:0">
+<div class="rb" style="padding:12px"><div class="t">How swaps get approved</div><div class="t2">›</div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Clock in when out of range</div><div class="t2">›</div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Fixing a wrong timesheet entry</div><div class="t2">›</div></div>
+<div class="rb" style="padding:12px;border-top:1px solid var(--border)"><div class="t">Claiming an open shift</div><div class="t2">›</div></div>
+</div>
+<div class="c"><div class="lbl">Still stuck</div><div class="btn2">Message your manager</div><div class="btn2">Contact support</div><div class="t2">App 2.4.0 · Store 04 · N. Wijesinghe</div></div>
+</div>
+</div>
+</x-import>
+</div></div>
+
+</div>
+
+<div class="dv-grp">Flow</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1aa"><div class="dv-olabel"><a class="dv-oid" href="#1aa">1aa</a>Workflow map</div><div class="dv-card" style="width:660px;padding:24px;background:var(--bg)">
+<div style="display:flex;gap:18px;align-items:flex-start">
+<div class="fcol"><div class="fh">Auth</div>
+<div class="fbox"><a class="dv-oid" href="#1a">1a</a> Splash</div>
+<div class="fbox"><a class="dv-oid" href="#1b">1b</a> Login</div>
+<div class="fbox" style="border-style:dashed"><a class="dv-oid" href="#1c">1c</a> Invite · <a class="dv-oid" href="#1d">1d</a> Reset · <a class="dv-oid" href="#1e">1e</a> Role</div>
+<div class="t2" style="text-align:center">↓ routes by role</div>
+</div>
+<div class="fcol"><div class="fh">Employee</div>
+<div class="fbox"><a class="dv-oid" href="#1f">1f</a> Home</div>
+<div class="fbox"><a class="dv-oid" href="#1g">1g</a> Schedule → <a class="dv-oid" href="#1h">1h</a> Shift details</div>
+<div class="fbox" style="border-color:var(--accent)"><a class="dv-oid" href="#1j">1j</a> Swap · <a class="dv-oid" href="#1k">1k</a> Time off · <a class="dv-oid" href="#1i">1i</a> Availability</div>
+<div class="fbox"><a class="dv-oid" href="#1m">1m</a> Clock in/out (geofence)</div>
+<div class="fbox"><a class="dv-oid" href="#1n">1n</a> Timesheet</div>
+<div class="fbox"><a class="dv-oid" href="#1o">1o</a> Team · <a class="dv-oid" href="#1p">1p</a> Profile · <a class="dv-oid" href="#1l">1l</a> Activity</div>
+</div>
+<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;width:74px;padding-top:80px">
+<div style="border-top:2px dashed var(--accent);width:100%"></div>
+<div class="t2" style="text-align:center;color:var(--accent)">requests →<br>approvals</div>
+</div>
+<div class="fcol"><div class="fh">Manager / admin</div>
+<div class="fbox"><a class="dv-oid" href="#1q">1q</a> Dashboard</div>
+<div class="fbox"><a class="dv-oid" href="#1r">1r</a> Schedule builder</div>
+<div class="fbox"><a class="dv-oid" href="#1u">1u</a> Open shift board</div>
+<div class="fbox" style="border-color:var(--accent)"><a class="dv-oid" href="#1t">1t</a> Approvals queue</div>
+<div class="fbox"><a class="dv-oid" href="#1s">1s</a> Staff · <a class="dv-oid" href="#1w">1w</a> Locations</div>
+<div class="fbox"><a class="dv-oid" href="#1v">1v</a> Reports · <a class="dv-oid" href="#1x">1x</a> Broadcast</div>
+</div>
+</div>
+<div class="t2" style="margin-top:16px">Shared: <a class="dv-oid" href="#1y">1y</a> notification settings · <a class="dv-oid" href="#1z">1z</a> help. In-app chat left out; announcements and push cover comms.</div>
+</div></div>
+</div>
+
+<p class="dv-next">Try next: "expand <a class="dv-oid" href="#1r">1r</a> into the full drag-and-drop builder flow" · "make <a class="dv-oid" href="#1m">1m</a> handle out-of-geofence and missed clock-out states" · "take the employee screens to hi-fi"</p>
+</section>
+
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/styles.css">
+<script src="_ds/ledger-design-system-7a4742ef-8990-442a-a7cc-06aa6e396a77/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:#EDEBE6;font-family:Inter,system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
+button{font-family:inherit}
+a{color:#1F6F4A}a:hover{color:#175A3B}
+</style></helmet>
+
+<div style="padding:40px;display:flex;justify-content:center">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+
+<div style="position:relative;height:100%;background:#FAFAF8;color:#1C1F1C;display:flex;flex-direction:column;overflow:hidden">
+
+<sc-if value="{{ is.splash }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#1F6F4A;color:#fff">
+<div style="width:64px;height:64px;border-radius:18px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font:600 26px Fraunces,Georgia,serif">S</div>
+<div style="font:600 30px Fraunces,Georgia,serif">Shifts</div>
+<div style="font:400 13px Inter;opacity:.7">Loading your day</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.login }}">
+<div style="flex:1;display:flex;flex-direction:column;gap:14px;padding:120px 24px 32px;overflow-y:auto">
+<div style="font:600 28px/1.2 Fraunces,Georgia,serif">Sign in</div>
+<div style="font:400 14px/1.5 Inter;color:#5F635C">Sign in as user@user.com or manager@manager.com.</div>
+<input type="email" value="{{ email }}" onChange="{{ setEmail }}" placeholder="Email" style="border:1px solid #E3E1DA;border-radius:4px;padding:14px 12px;font:400 15px Inter;background:#fff;color:#1C1F1C;outline:none;margin-top:8px">
+<input type="password" value="{{ pwd }}" onChange="{{ setPwd }}" placeholder="Password" style="border:1px solid #E3E1DA;border-radius:4px;padding:14px 12px;font:400 15px Inter;background:#fff;color:#1C1F1C;outline:none">
+<sc-if value="{{ loginError }}"><div style="font:400 13px Inter;color:#A03428">{{ loginError }}</div></sc-if>
+<button onClick="{{ signIn }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:15px;font:500 15px Inter;cursor:pointer" style-hover="background:#175A3B">Sign in</button>
+<button onClick="{{ nav.forgot }}" style="background:none;border:none;font:400 13px Inter;color:#5F635C;cursor:pointer;padding:6px">Forgot password</button>
+<div style="flex:1"></div>
+<button onClick="{{ nav.signup }}" style="background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:13px;font:500 14px Inter;color:#1C1F1C;cursor:pointer" style-hover="background:#F2F1ED">Join with company code</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.signup }}">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;padding:110px 24px 32px;overflow-y:auto">
+<div style="font:600 28px/1.2 Fraunces,Georgia,serif">Join your team</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:4px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Invited by</div>
+<div style="font:400 14px Inter">Northgate Retail — Store 04</div>
+</div>
+<input placeholder="Company code" style="border:1px solid #E3E1DA;border-radius:4px;padding:14px 12px;font:400 15px Inter;background:#fff;outline:none">
+<input placeholder="Full name" style="border:1px solid #E3E1DA;border-radius:4px;padding:14px 12px;font:400 15px Inter;background:#fff;outline:none">
+<input placeholder="Email" style="border:1px solid #E3E1DA;border-radius:4px;padding:14px 12px;font:400 15px Inter;background:#fff;outline:none">
+<input type="password" placeholder="Password" style="border:1px solid #E3E1DA;border-radius:4px;padding:14px 12px;font:400 15px Inter;background:#fff;outline:none">
+<button onClick="{{ nav.login }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:15px;font:500 15px Inter;cursor:pointer" style-hover="background:#175A3B">Create account</button>
+<button onClick="{{ nav.login }}" style="background:none;border:none;font:400 13px Inter;color:#5F635C;cursor:pointer;padding:6px">Already have an account? Sign in</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.forgot }}">
+<div style="flex:1;display:flex;flex-direction:column;gap:14px;padding:110px 24px 32px;overflow-y:auto">
+<div style="font:600 28px/1.2 Fraunces,Georgia,serif">Reset password</div>
+<div style="font:400 14px/1.5 Inter;color:#5F635C">We will email a reset link. The link expires in 30 minutes.</div>
+<input placeholder="Email" style="border:1px solid #E3E1DA;border-radius:4px;padding:14px 12px;font:400 15px Inter;background:#fff;outline:none">
+<button onClick="{{ sendReset }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:15px;font:500 15px Inter;cursor:pointer" style-hover="background:#175A3B">Send reset link</button>
+<sc-if value="{{ resetSent }}">
+<div style="background:#E6F1EA;border:1px solid #1F6F4A;border-radius:8px;padding:16px;font:400 13px/1.5 Inter;color:#1F6F4A">Reset link sent. Check your inbox.</div>
+</sc-if>
+<button onClick="{{ nav.login }}" style="background:none;border:none;font:400 13px Inter;color:#5F635C;cursor:pointer;padding:6px">Back to sign in</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.home }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Thu 20 Aug 2026</div><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Today</div></div>
+<button onClick="{{ nav.activity }}" style="position:relative;width:36px;height:36px;border-radius:999px;border:1px solid #E3E1DA;background:#fff;cursor:pointer;font:500 12px Inter;color:#5F635C" style-hover="background:#F2F1ED">{{ unreadCount }}</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #1F6F4A;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+<div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ nextLabel }}</div>
+<div style="font:600 20px/1.3 Inter;font-variant-numeric:tabular-nums">{{ nextShift.time }}</div>
+<div style="font:400 13px Inter;color:#5F635C">{{ nextShift.sub }}</div></div>
+<div style="border:1px solid #1F6F4A;background:#E6F1EA;color:#1F6F4A;border-radius:999px;padding:5px 10px;font:500 11px Inter;white-space:nowrap">{{ clockPill }}</div>
+</div>
+<button onClick="{{ nav.clock }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:14px;font:500 15px Inter;cursor:pointer" style-hover="background:#175A3B">{{ clockCta }}</button>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:4px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">This week</div><div style="font:600 20px Inter;font-variant-numeric:tabular-nums">{{ weekHours }} h</div></div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:4px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Shifts left</div><div style="font:600 20px Inter;font-variant-numeric:tabular-nums">{{ shiftsLeft }}</div></div>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;justify-content:space-between"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Activity</div><button onClick="{{ nav.activity }}" style="background:none;border:none;font:400 13px Inter;color:#1F6F4A;cursor:pointer;padding:0">See all</button></div>
+<sc-for list="{{ activityTop }}" as="a" hint-placeholder-count="2">
+<div style="display:flex;align-items:flex-start;gap:10px"><div style="width:7px;height:7px;border-radius:999px;background:#1F6F4A;margin-top:6px;flex:none"></div><div><div style="font:400 14px/1.35 Inter">{{ a.title }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ a.sub }}</div></div></div>
+</sc-for>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Upcoming</div>
+<sc-for list="{{ upcoming }}" as="s" hint-placeholder-count="2">
+<button onClick="{{ s.tap }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:none;border:none;padding:6px 0;cursor:pointer;text-align:left" style-hover="opacity:.6"><div><div style="font:400 14px Inter">{{ s.day }} · {{ s.loc }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ s.status }}</div></div><div style="font:400 13px Inter;color:#5F635C;font-variant-numeric:tabular-nums">{{ s.time }}</div></button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.schedule }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Schedule</div>
+<div style="display:flex;gap:6px">
+<sc-for list="{{ views }}" as="v" hint-placeholder-count="3"><button onClick="{{ v.tap }}" style="border-radius:999px;padding:6px 11px;font:500 11px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C" style-hover="background:#F2F1ED"><sc-if value="{{ v.on }}"><span style="color:#1F6F4A;font-weight:600">{{ v.name }}</span></sc-if><sc-if value="{{ v.off }}"><span>{{ v.name }}</span></sc-if></button></sc-for>
+</div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:12px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+<sc-for list="{{ weekStrip }}" as="d" hint-placeholder-count="7">
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="font:400 11px Inter;color:#8B8F87">{{ d.letter }}</div><sc-if value="{{ d.on }}"><div style="width:100%;height:28px;border-radius:6px;background:#E6F1EA;border:1px solid #1F6F4A"></div></sc-if><sc-if value="{{ d.off }}"><div style="width:100%;height:28px;border-radius:6px;background:#F2F1ED"></div></sc-if></div>
+</sc-for>
+</div>
+<div style="font:400 12px Inter;color:#8B8F87">{{ viewNote }}</div>
+<sc-for list="{{ myShifts }}" as="s" hint-placeholder-count="3">
+<button onClick="{{ s.tap }}" style="text-align:left;background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED">
+<div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ s.day }}</div><div style="font:400 15px Inter;font-variant-numeric:tabular-nums">{{ s.time }}</div><div style="font:400 12px Inter;color:#5F635C">{{ s.roleLoc }}</div></div>
+<div style="border:1px solid #E3E1DA;background:#F2F1ED;color:#5F635C;border-radius:999px;padding:5px 10px;font:500 11px Inter;white-space:nowrap">{{ s.status }}</div>
+</button>
+</sc-for>
+<button onClick="{{ nav.empopen }}" style="text-align:left;background:none;border:1px dashed #CDCAC0;border-radius:8px;padding:14px;cursor:pointer;font:400 13px/1.4 Inter;color:#5F635C" style-hover="background:#F2F1ED">Sat 22 Aug — no shift. {{ openCount }} open shifts available.</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.shift }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ shift.day }} 2026</div><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Shift details</div></div>
+<button onClick="{{ back }}" style="background:none;border:none;font:400 14px Inter;color:#1F6F4A;cursor:pointer">Close</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div><div style="font:600 20px Inter;font-variant-numeric:tabular-nums">{{ shift.time }}</div><div style="font:400 13px Inter;color:#5F635C">30 min unpaid break</div></div>
+<div style="border:1px solid #1F6F4A;background:#E6F1EA;color:#1F6F4A;border-radius:999px;padding:5px 10px;font:500 11px Inter">{{ shift.hours }} h</div>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ shiftFacts }}" as="f" hint-placeholder-count="4"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ f.k }}</div><div style="font:400 14px Inter">{{ f.v }}</div></div></sc-for>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Notes</div><div style="font:400 13px/1.5 Inter;color:#5F635C">{{ shift.notes }}</div></div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">On this shift</div>
+<sc-for list="{{ crew }}" as="p" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:999px;background:#F2F1ED;border:1px solid #E3E1DA;display:flex;align-items:center;justify-content:center;font:500 11px Inter;color:#5F635C">{{ p.ini }}</div><div style="font:400 14px Inter">{{ p.name }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ p.role }}</div></div></sc-for>
+</div>
+<button onClick="{{ startSwap }}" style="background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:14px;font:500 14px Inter;color:#1C1F1C;cursor:pointer" style-hover="background:#F2F1ED">Request swap</button>
+<button onClick="{{ nav.timeoff }}" style="background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:14px;font:500 14px Inter;color:#1C1F1C;cursor:pointer" style-hover="background:#F2F1ED">Request time off</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.requests }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Requests</div></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ requestLinks }}" as="l" hint-placeholder-count="5">
+<button onClick="{{ l.tap }}" style="text-align:left;background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED"><div><div style="font:400 15px Inter">{{ l.title }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ l.sub }}</div></div><div style="font:400 15px Inter;color:#CDCAC0">›</div></button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.avail }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Availability</div>
+<button onClick="{{ saveAvail }}" style="background:none;border:none;font:500 14px Inter;color:#1F6F4A;cursor:pointer">Save</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:10px">
+<div style="font:400 13px/1.5 Inter;color:#5F635C">Recurring weekly. Managers see this in the schedule builder.</div>
+<sc-for list="{{ availRows }}" as="d" hint-placeholder-count="7">
+<button onClick="{{ d.tap }}" style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED"><div style="font:400 14px Inter">{{ d.day }}</div>
+<sc-if value="{{ d.on }}"><div style="border:1px solid #1F6F4A;background:#E6F1EA;color:#1F6F4A;border-radius:999px;padding:5px 10px;font:500 11px Inter;font-variant-numeric:tabular-nums">{{ d.val }}</div></sc-if>
+<sc-if value="{{ d.off }}"><div style="border:1px solid #E3E1DA;background:#F2F1ED;color:#8B8F87;border-radius:999px;padding:5px 10px;font:500 11px Inter">Unavailable</div></sc-if>
+</button>
+</sc-for>
+<div style="background:#fff;border:1px dashed #CDCAC0;border-radius:8px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Max hours</div><div style="font:400 13px Inter;color:#5F635C">Per week</div></div><div style="display:flex;align-items:center;gap:10px"><button onClick="{{ maxDown }}" style="width:32px;height:32px;border-radius:8px;border:1px solid #CDCAC0;background:#fff;cursor:pointer;font:400 16px Inter">−</button><div style="font:600 16px Inter;font-variant-numeric:tabular-nums;min-width:44px;text-align:center">{{ maxHours }} h</div><button onClick="{{ maxUp }}" style="width:32px;height:32px;border-radius:8px;border:1px solid #CDCAC0;background:#fff;cursor:pointer;font:400 16px Inter">+</button></div></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.swap }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Step 2 of 2</div><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Request swap</div></div>
+<button onClick="{{ back }}" style="background:none;border:none;font:400 14px Inter;color:#5F635C;cursor:pointer">Cancel</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:6px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Giving away</div><div style="font:400 15px Inter;font-variant-numeric:tabular-nums">{{ shift.day }} · {{ shift.time }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ shift.roleLoc }}</div></div>
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Eligible coworkers</div>
+<sc-for list="{{ coworkers }}" as="c" hint-placeholder-count="3">
+<button onClick="{{ c.tap }}" style="text-align:left;background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED">
+<div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:999px;background:#F2F1ED;border:1px solid #E3E1DA;display:flex;align-items:center;justify-content:center;font:500 12px Inter;color:#5F635C">{{ c.ini }}</div><div><div style="font:400 14px Inter">{{ c.name }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ c.note }}</div></div></div>
+<sc-if value="{{ c.on }}"><div style="width:20px;height:20px;border-radius:999px;background:#1F6F4A;border:1px solid #1F6F4A;flex:none"></div></sc-if>
+<sc-if value="{{ c.off }}"><div style="width:20px;height:20px;border-radius:999px;background:#fff;border:1px solid #CDCAC0;flex:none"></div></sc-if>
+</button>
+</sc-for>
+<input value="{{ swapReason }}" onChange="{{ setSwapReason }}" placeholder="Reason (optional)" style="border:1px solid #E3E1DA;border-radius:4px;padding:14px 12px;font:400 14px Inter;background:#fff;outline:none">
+<button onClick="{{ sendSwap }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:15px;font:500 15px Inter;cursor:pointer" style-hover="background:#175A3B">Send for approval</button>
+<div style="font:400 12px/1.5 Inter;color:#8B8F87">{{ swapFootnote }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.timeoff }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Time off</div>
+<div style="font:400 13px Inter;color:#5F635C;font-variant-numeric:tabular-nums">{{ tofBalance }} days left</div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Balance</div>
+<div style="display:flex;align-items:center;justify-content:space-between"><div style="font:600 20px Inter;font-variant-numeric:tabular-nums">{{ tofBalance }} days</div><div style="font:400 13px Inter;color:#5F635C">Used 8.5 of 20</div></div>
+<div style="height:6px;border-radius:999px;background:#F2F1ED;overflow:hidden"><div style="height:6px;width:42%;border-radius:999px;background:#1F6F4A"></div></div>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">New request</div>
+<div style="display:flex;gap:10px"><input value="{{ tofFrom }}" onChange="{{ setTofFrom }}" style="flex:1;min-width:0;border:1px solid #E3E1DA;border-radius:4px;padding:12px;font:400 14px Inter;outline:none"><input value="{{ tofTo }}" onChange="{{ setTofTo }}" style="flex:1;min-width:0;border:1px solid #E3E1DA;border-radius:4px;padding:12px;font:400 14px Inter;outline:none"></div>
+<div style="display:flex;gap:8px">
+<sc-for list="{{ tofTypes }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.tap }}" style="border-radius:999px;padding:7px 12px;font:500 12px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C" style-hover="background:#F2F1ED"><sc-if value="{{ t.on }}"><span style="color:#1F6F4A;font-weight:600">{{ t.name }}</span></sc-if><sc-if value="{{ t.off }}"><span>{{ t.name }}</span></sc-if></button></sc-for>
+</div>
+<input value="{{ tofNote }}" onChange="{{ setTofNote }}" placeholder="Note to manager" style="border:1px solid #E3E1DA;border-radius:4px;padding:12px;font:400 14px Inter;outline:none">
+<button onClick="{{ submitTof }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:14px;font:500 15px Inter;cursor:pointer" style-hover="background:#175A3B">Submit</button>
+</div>
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">History</div>
+<sc-for list="{{ tofList }}" as="t" hint-placeholder-count="2">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div><div style="font:400 14px Inter">{{ t.range }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ t.kind }}</div></div><div style="border:1px solid #E3E1DA;background:#F2F1ED;color:#5F635C;border-radius:999px;padding:5px 10px;font:500 11px Inter">{{ t.status }}</div></div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.activity }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Activity</div>
+<button onClick="{{ markRead }}" style="background:none;border:none;font:400 13px Inter;color:#1F6F4A;cursor:pointer">Mark all read</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ activity }}" as="a" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:flex-start;gap:10px">
+<sc-if value="{{ a.unread }}"><div style="width:7px;height:7px;border-radius:999px;background:#1F6F4A;margin-top:6px;flex:none"></div></sc-if>
+<sc-if value="{{ a.read }}"><div style="width:7px;height:7px;border-radius:999px;background:#E3E1DA;margin-top:6px;flex:none"></div></sc-if>
+<div><div style="font:400 14px/1.4 Inter">{{ a.title }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ a.sub }}</div></div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.clock }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">{{ clockTitle }}</div>
+<button onClick="{{ toggleGeo }}" style="border:1px solid #E3E1DA;background:#F2F1ED;color:#5F635C;border-radius:999px;padding:6px 11px;font:500 11px Inter;cursor:pointer" style-hover="background:#E3E1DA">{{ geoLabel }}</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:14px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Location check</div>
+<div style="height:120px;border-radius:6px;background:#F2F1ED;border:1px solid #E3E1DA;display:flex;align-items:center;justify-content:center;font:400 12px Inter;color:#8B8F87">Map placeholder — geofence radius</div>
+<div style="display:flex;align-items:center;gap:8px">
+<sc-if value="{{ inRange }}"><div style="width:8px;height:8px;border-radius:999px;background:#1F6F4A"></div><div style="font:400 13px Inter;color:#1F6F4A">Inside 120 m of Store 04</div></sc-if>
+<sc-if value="{{ outRange }}"><div style="width:8px;height:8px;border-radius:999px;background:#B4462F"></div><div style="font:400 13px Inter;color:#B4462F">420 m from Store 04 — outside the geofence</div></sc-if>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Scheduled 09:00 — 17:30</div>
+<sc-if value="{{ canClock }}">
+<button onClick="{{ toggleClock }}" style="width:170px;height:170px;border-radius:999px;background:#1F6F4A;border:none;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer" style-hover="background:#175A3B"><span style="font:600 20px Inter">{{ clockCta }}</span><span style="font:400 13px Inter;opacity:.8;font-variant-numeric:tabular-nums">{{ clockTime }}</span></button>
+</sc-if>
+<sc-if value="{{ outRange }}">
+<div style="width:170px;height:170px;border-radius:999px;background:#F2F1ED;border:1px dashed #CDCAC0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8B8F87;text-align:center;padding:16px"><span style="font:500 14px Inter">Clock in blocked</span><span style="font:400 12px/1.4 Inter">Move closer or request a manual entry</span></div>
+<button onClick="{{ requestManual }}" style="background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:13px 18px;font:500 14px Inter;cursor:pointer" style-hover="background:#F2F1ED">Request manual entry</button>
+</sc-if>
+</div>
+<sc-if value="{{ clockedIn }}">
+<div style="background:#fff;border:1px solid #1F6F4A;border-radius:8px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Elapsed</div><div style="font:600 18px Inter;font-variant-numeric:tabular-nums">{{ elapsed }}</div></div>
+<button onClick="{{ toggleBreak }}" style="border:1px solid #CDCAC0;background:#fff;border-radius:999px;padding:8px 14px;font:500 12px Inter;cursor:pointer" style-hover="background:#F2F1ED">{{ breakCta }}</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.timesheet }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Timesheet</div>
+<div style="border:1px solid #1F6F4A;background:#E6F1EA;color:#1F6F4A;border-radius:999px;padding:6px 11px;font:500 11px Inter">16 — 22 Aug</div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:4px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Worked</div><div style="font:600 20px Inter;font-variant-numeric:tabular-nums">{{ weekHours }} h</div></div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:4px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Overtime</div><div style="font:600 20px Inter;font-variant-numeric:tabular-nums">1.5 h</div></div>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E3E1DA;font:500 11px Inter;letter-spacing:.04em;text-transform:uppercase;color:#8B8F87"><div style="width:64px">Date</div><div style="flex:1;text-align:center">In / out</div><div style="width:52px;text-align:right">Hours</div></div>
+<sc-for list="{{ timesheet }}" as="r" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E3E1DA"><div style="width:64px;font:400 14px Inter">{{ r.day }}</div><div style="flex:1;text-align:center;font:400 13px Inter;color:#5F635C;font-variant-numeric:tabular-nums">{{ r.io }}</div><div style="width:52px;text-align:right;font:400 14px Inter;font-variant-numeric:tabular-nums">{{ r.hours }}</div></div>
+</sc-for>
+</div>
+<div style="background:#fff;border:1px dashed #CDCAC0;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font:400 13px/1.4 Inter;color:#5F635C">Wed 19 flagged — clocked in 4 min late</div><button onClick="{{ dispute }}" style="background:none;border:none;font:500 13px Inter;color:#1F6F4A;cursor:pointer">Dispute</button></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.team }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Team</div></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:10px">
+<input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search name or role" style="border:1px solid #E3E1DA;border-radius:4px;padding:12px;font:400 14px Inter;background:#fff;outline:none">
+<div style="display:flex;gap:8px">
+<sc-for list="{{ siteTabs }}" as="s" hint-placeholder-count="3"><button onClick="{{ s.tap }}" style="border-radius:999px;padding:7px 12px;font:500 12px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C;white-space:nowrap" style-hover="background:#F2F1ED"><sc-if value="{{ s.on }}"><span style="color:#1F6F4A;font-weight:600">{{ s.name }}</span></sc-if><sc-if value="{{ s.off }}"><span>{{ s.name }}</span></sc-if></button></sc-for>
+</div>
+<sc-for list="{{ teamList }}" as="p" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:999px;background:#F2F1ED;border:1px solid #E3E1DA;display:flex;align-items:center;justify-content:center;font:500 12px Inter;color:#5F635C">{{ p.ini }}</div><div><div style="font:400 14px Inter">{{ p.name }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ p.sub }}</div></div></div>
+<button onClick="{{ p.call }}" style="border:1px solid #CDCAC0;background:#fff;border-radius:999px;padding:7px 13px;font:500 12px Inter;cursor:pointer" style-hover="background:#F2F1ED">Call</button>
+</div>
+</sc-for>
+<sc-if value="{{ teamEmpty }}"><div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:32px;text-align:center;font:400 14px Inter;color:#8B8F87">No one matches that search.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.empopen }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Open shifts</div>
+<div style="font:400 13px Inter;color:#5F635C">{{ openCount }} available</div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ openList }}" as="o" hint-placeholder-count="3">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div><div style="font:400 15px Inter;font-variant-numeric:tabular-nums">{{ o.when }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ o.what }}</div></div>
+<div style="font:400 12px Inter;color:#5F635C">{{ o.claimNote }}</div>
+<sc-if value="{{ o.mine }}"><div style="border:1px solid #1F6F4A;background:#E6F1EA;color:#1F6F4A;border-radius:8px;padding:12px;text-align:center;font:500 13px Inter">Claim sent — waiting on your manager</div></sc-if>
+<sc-if value="{{ o.notMine }}"><button onClick="{{ o.claim }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:13px;font:500 14px Inter;cursor:pointer" style-hover="background:#175A3B">Claim shift</button></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{ openEmpty }}"><div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:32px;text-align:center;font:400 14px Inter;color:#8B8F87">No open shifts right now.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.profile }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Me</div></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px"><div style="width:52px;height:52px;border-radius:999px;background:#F2F1ED;border:1px solid #E3E1DA;display:flex;align-items:center;justify-content:center;font:500 16px Inter;color:#5F635C">{{ meIni }}</div><div><div style="font:600 16px Inter">{{ meName }}</div><div style="font:400 13px Inter;color:#5F635C">Floor associate · Store 04</div></div></div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;overflow:hidden">
+<sc-for list="{{ profileLinks }}" as="l" hint-placeholder-count="5">
+<button onClick="{{ l.tap }}" style="width:100%;box-sizing:border-box;text-align:left;background:#fff;border:none;border-bottom:1px solid #E3E1DA;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED"><div style="font:400 14px Inter">{{ l.title }}</div><div style="font:400 13px Inter;color:#8B8F87">{{ l.right }}</div></button>
+</sc-for>
+</div>
+<button onClick="{{ signOut }}" style="background:#fff;border:1px solid #A03428;border-radius:8px;padding:14px;font:500 14px Inter;color:#A03428;cursor:pointer" style-hover="background:#FBF1EF">Sign out</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.notif }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Notifications</div><button onClick="{{ back }}" style="background:none;border:none;font:400 14px Inter;color:#1F6F4A;cursor:pointer">Done</button></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;overflow:hidden">
+<sc-for list="{{ notifRows }}" as="n" hint-placeholder-count="5">
+<button onClick="{{ n.tap }}" style="width:100%;box-sizing:border-box;background:#fff;border:none;border-bottom:1px solid #E3E1DA;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED">
+<div style="font:400 14px Inter">{{ n.label }}</div>
+<sc-if value="{{ n.on }}"><div style="width:44px;height:26px;border-radius:999px;background:#1F6F4A;display:flex;align-items:center;justify-content:flex-end;padding:3px;box-sizing:border-box"><div style="width:20px;height:20px;border-radius:999px;background:#fff"></div></div></sc-if>
+<sc-if value="{{ n.off }}"><div style="width:44px;height:26px;border-radius:999px;background:#E3E1DA;display:flex;align-items:center;justify-content:flex-start;padding:3px;box-sizing:border-box"><div style="width:20px;height:20px;border-radius:999px;background:#fff"></div></div></sc-if>
+</button>
+</sc-for>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Quiet hours</div><div style="font:400 13px Inter;color:#5F635C">No pushes between</div></div><div style="font:400 15px Inter;font-variant-numeric:tabular-nums">22:00 — 07:00</div></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.help }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Help</div><button onClick="{{ back }}" style="background:none;border:none;font:400 14px Inter;color:#1F6F4A;cursor:pointer">Done</button></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<input placeholder="Search help" style="border:1px solid #E3E1DA;border-radius:4px;padding:12px;font:400 14px Inter;background:#fff;outline:none">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;overflow:hidden">
+<sc-for list="{{ helpTopics }}" as="h" hint-placeholder-count="4">
+<button onClick="{{ h.tap }}" style="width:100%;box-sizing:border-box;text-align:left;background:#fff;border:none;border-bottom:1px solid #E3E1DA;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED"><div style="font:400 14px Inter">{{ h.title }}</div><div style="font:400 15px Inter;color:#CDCAC0">›</div></button>
+</sc-for>
+</div>
+<div style="font:400 12px Inter;color:#8B8F87">App 2.4.0 · Store 04 · {{ meName }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mdash }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Thu 20 Aug 2026</div><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Overview</div></div>
+<button onClick="{{ cycleSite }}" style="border:1px solid #1F6F4A;background:#E6F1EA;color:#1F6F4A;border-radius:999px;padding:6px 11px;font:500 11px Inter;cursor:pointer;white-space:nowrap">{{ site }}</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:4px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ k.label }}</div><div style="font:600 20px Inter;font-variant-numeric:tabular-nums">{{ k.value }}</div></div>
+</sc-for>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Coverage this week</div>
+<div style="display:flex;align-items:flex-end;gap:7px;height:80px">
+<div style="flex:1;height:60%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:80%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:45%;background:#B4462F;border-radius:3px"></div><div style="flex:1;height:92%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:70%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:35%;background:#B4462F;border-radius:3px"></div><div style="flex:1;height:55%;background:#1F6F4A;border-radius:3px"></div>
+</div>
+<div style="display:flex;justify-content:space-between;font:400 11px Inter;color:#8B8F87"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Needs you</div>
+<sc-for list="{{ needsYou }}" as="n" hint-placeholder-count="2">
+<button onClick="{{ n.tap }}" style="text-align:left;background:none;border:none;padding:0;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="opacity:.6"><div style="font:400 14px/1.35 Inter">{{ n.title }}</div><div style="border:1px solid #CDCAC0;border-radius:999px;padding:5px 11px;font:500 11px Inter;color:#1C1F1C;white-space:nowrap">{{ n.cta }}</div></button>
+</sc-for>
+<sc-if value="{{ needsEmpty }}"><div style="font:400 13px Inter;color:#8B8F87">Nothing waiting on you.</div></sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mbuild }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ draftLabel }}</div><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Build</div></div>
+<button onClick="{{ publish }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:999px;padding:8px 14px;font:500 12px Inter;cursor:pointer" style-hover="background:#175A3B">Publish</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px">
+<sc-for list="{{ buildTabs }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.tap }}" style="border-radius:999px;padding:7px 12px;font:500 12px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C;white-space:nowrap" style-hover="background:#F2F1ED"><sc-if value="{{ t.on }}"><span style="color:#1F6F4A;font-weight:600">{{ t.name }}</span></sc-if><sc-if value="{{ t.off }}"><span>{{ t.name }}</span></sc-if></button></sc-for>
+</div>
+
+<sc-if value="{{ buildIsCreate }}">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">New shift</div>
+<input value="{{ newName }}" onChange="{{ setNewName }}" placeholder="Shift name — e.g. Morning floor" style="border:1px solid #E3E1DA;border-radius:4px;padding:12px;font:400 14px Inter;background:#fff;outline:none">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87;flex:none">Starts</div><input type="datetime-local" value="{{ newStart }}" onChange="{{ setNewStart }}" style="flex:1;min-width:0;border:1px solid #E3E1DA;border-radius:4px;padding:11px;font:400 13px Inter;background:#fff;outline:none;font-variant-numeric:tabular-nums"></div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87;flex:none">Ends</div><input type="datetime-local" value="{{ newEnd }}" onChange="{{ setNewEnd }}" style="flex:1;min-width:0;border:1px solid #E3E1DA;border-radius:4px;padding:11px;font:400 13px Inter;background:#fff;outline:none;font-variant-numeric:tabular-nums"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{ deptOptions }}" as="d" hint-placeholder-count="3"><button onClick="{{ d.tap }}" style="border-radius:999px;padding:7px 12px;font:500 12px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C;white-space:nowrap" style-hover="background:#F2F1ED"><sc-if value="{{ d.on }}"><span style="color:#1F6F4A;font-weight:600">{{ d.name }}</span></sc-if><sc-if value="{{ d.off }}"><span>{{ d.name }}</span></sc-if></button></sc-for>
+</div>
+<button onClick="{{ createShift }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:14px;font:500 14px Inter;cursor:pointer" style-hover="background:#175A3B">Create shift</button>
+<div style="font:400 12px/1.45 Inter;color:#8B8F87">Created shifts stay unassigned until you staff them in Assign.</div>
+</div>
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Created shifts</div>
+<sc-for list="{{ defList }}" as="d" hint-placeholder-count="3">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+<div><div style="font:400 15px Inter">{{ d.name }}</div><div style="font:400 13px Inter;color:#5F635C;font-variant-numeric:tabular-nums">{{ d.when }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ d.staffing }}</div></div>
+<button onClick="{{ d.remove }}" style="background:none;border:none;font:500 13px Inter;color:#A03428;cursor:pointer;padding:0">Delete</button>
+</div>
+</sc-for>
+<sc-if value="{{ defsEmpty }}"><div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:32px;text-align:center;font:400 14px Inter;color:#8B8F87">No shifts created yet.</div></sc-if>
+</sc-if>
+
+<sc-if value="{{ buildIsAssign }}">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Pick a shift</div>
+<sc-for list="{{ assignPicks }}" as="d" hint-placeholder-count="3">
+<button onClick="{{ d.tap }}" style="text-align:left;background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED">
+<div><div style="font:400 15px Inter">{{ d.name }}</div><div style="font:400 12px Inter;color:#5F635C;font-variant-numeric:tabular-nums">{{ d.when }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ d.staffing }}</div></div>
+<sc-if value="{{ d.on }}"><div style="width:20px;height:20px;border-radius:999px;background:#1F6F4A;border:1px solid #1F6F4A;flex:none"></div></sc-if>
+<sc-if value="{{ d.off }}"><div style="width:20px;height:20px;border-radius:999px;background:#fff;border:1px solid #CDCAC0;flex:none"></div></sc-if>
+</button>
+</sc-for>
+<sc-if value="{{ defsEmpty }}"><div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:32px;text-align:center;font:400 14px Inter;color:#8B8F87">Create a shift first.</div></sc-if>
+<sc-if value="{{ assignOpen }}">
+<div style="background:#fff;border:1px solid #1F6F4A;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div><div style="font:600 16px Inter">{{ assignSel.name }}</div><div style="font:400 13px Inter;color:#5F635C;font-variant-numeric:tabular-nums">{{ assignSel.when }}</div></div>
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Shift leader</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ leaderOptions }}" as="p" hint-placeholder-count="4"><button onClick="{{ p.tap }}" style="border-radius:999px;padding:7px 12px;font:500 12px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C;white-space:nowrap" style-hover="background:#F2F1ED"><sc-if value="{{ p.on }}"><span style="color:#1F6F4A;font-weight:600">{{ p.name }}</span></sc-if><sc-if value="{{ p.off }}"><span>{{ p.name }}</span></sc-if></button></sc-for>
+</div>
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Shift workers</div>
+<sc-for list="{{ workerOptions }}" as="p" hint-placeholder-count="4">
+<button onClick="{{ p.tap }}" style="text-align:left;background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED">
+<div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:999px;background:#F2F1ED;border:1px solid #E3E1DA;display:flex;align-items:center;justify-content:center;font:500 11px Inter;color:#5F635C">{{ p.ini }}</div><div><div style="font:400 14px Inter">{{ p.name }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ p.sub }}</div></div></div>
+<sc-if value="{{ p.on }}"><div style="width:20px;height:20px;border-radius:4px;background:#1F6F4A;border:1px solid #1F6F4A;flex:none"></div></sc-if>
+<sc-if value="{{ p.off }}"><div style="width:20px;height:20px;border-radius:4px;background:#fff;border:1px solid #CDCAC0;flex:none"></div></sc-if>
+</button>
+</sc-for>
+<div style="font:400 12px/1.45 Inter;color:#5F635C">{{ assignSummary }}</div>
+<div style="display:flex;gap:8px">
+<button onClick="{{ saveAssign }}" style="flex:1;background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:13px;font:500 14px Inter;cursor:pointer" style-hover="background:#175A3B">Save staffing</button>
+<button onClick="{{ postAssign }}" style="flex:1;background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:13px;font:500 14px Inter;cursor:pointer" style-hover="background:#F2F1ED">Post open</button>
+</div>
+</div>
+</sc-if>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mapprovals }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Approvals</div>
+<div style="border:1px solid #1F6F4A;background:#E6F1EA;color:#1F6F4A;border-radius:999px;padding:6px 12px;font:600 12px Inter;font-variant-numeric:tabular-nums">{{ approvalCount }}</div>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ approvals }}" as="a" hint-placeholder-count="3">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ a.kind }}</div>
+<div style="font:400 15px Inter">{{ a.title }}</div>
+<div style="font:400 13px Inter;color:#5F635C;font-variant-numeric:tabular-nums">{{ a.sub }}</div>
+<sc-if value="{{ a.warn }}"><div style="font:400 13px/1.45 Inter;color:#B4462F">{{ a.warnText }}</div></sc-if>
+<sc-if value="{{ a.ok }}"><div style="font:400 13px/1.45 Inter;color:#5F635C">{{ a.okText }}</div></sc-if>
+<div style="display:flex;gap:8px;margin-top:4px">
+<button onClick="{{ a.approve }}" style="flex:1;background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:12px;font:500 14px Inter;cursor:pointer" style-hover="background:#175A3B">{{ a.approveCta }}</button>
+<button onClick="{{ a.decline }}" style="flex:1;background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:12px;font:500 14px Inter;color:#1C1F1C;cursor:pointer" style-hover="background:#F2F1ED">Decline</button>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{ approvalsEmpty }}"><div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:40px 24px;text-align:center;display:flex;flex-direction:column;gap:6px"><div style="font:400 15px Inter">Queue clear.</div><div style="font:400 13px Inter;color:#8B8F87">Employee requests land here.</div></div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mopen }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Open shifts</div>
+<button onClick="{{ postShift }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:999px;padding:8px 14px;font:500 12px Inter;cursor:pointer" style-hover="background:#175A3B">Post shift</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ openList }}" as="o" hint-placeholder-count="3">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+<div><div style="font:400 15px Inter;font-variant-numeric:tabular-nums">{{ o.when }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ o.what }}</div></div>
+<div style="border:1px solid #E3E1DA;background:#F2F1ED;color:#5F635C;border-radius:999px;padding:5px 10px;font:500 11px Inter;white-space:nowrap">{{ o.claimPill }}</div>
+</div>
+<div style="font:400 12px/1.45 Inter;color:#5F635C">{{ o.claimNote }}</div>
+<sc-if value="{{ o.hasClaims }}">
+<div style="display:flex;gap:8px">
+<button onClick="{{ o.assign }}" style="flex:1;background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:12px;font:500 13px Inter;cursor:pointer" style-hover="background:#175A3B">Assign {{ o.first }}</button>
+<button onClick="{{ o.unpost }}" style="background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:12px 14px;font:500 13px Inter;cursor:pointer" style-hover="background:#F2F1ED">Unpost</button>
+</div>
+</sc-if>
+</div>
+</sc-for>
+<sc-if value="{{ openEmpty }}"><div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:40px 24px;text-align:center;font:400 14px Inter;color:#8B8F87">Every shift is filled.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mstaff }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="font:600 24px/1.25 Fraunces,Georgia,serif">Staff</div>
+<button onClick="{{ addStaff }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:999px;padding:8px 14px;font:500 12px Inter;cursor:pointer" style-hover="background:#175A3B">Add</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:10px">
+<input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search staff" style="border:1px solid #E3E1DA;border-radius:4px;padding:12px;font:400 14px Inter;background:#fff;outline:none">
+<sc-for list="{{ staffList }}" as="p" hint-placeholder-count="4">
+<button onClick="{{ p.open }}" style="text-align:left;background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED">
+<div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:999px;background:#F2F1ED;border:1px solid #E3E1DA;display:flex;align-items:center;justify-content:center;font:500 12px Inter;color:#5F635C">{{ p.ini }}</div><div><div style="font:400 14px Inter">{{ p.name }}</div><div style="font:400 12px Inter;color:#8B8F87;font-variant-numeric:tabular-nums">{{ p.sub }}</div></div></div>
+<div style="font:400 13px Inter;color:#1F6F4A">Edit</div>
+</button>
+</sc-for>
+<sc-if value="{{ staffOpen }}">
+<div style="background:#fff;border:1px solid #1F6F4A;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;justify-content:space-between"><div style="font:600 16px Inter">{{ staffSel.name }}</div><button onClick="{{ closeStaff }}" style="background:none;border:none;font:400 14px Inter;color:#5F635C;cursor:pointer">Close</button></div>
+<sc-for list="{{ staffFields }}" as="f" hint-placeholder-count="5"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:8px;border-bottom:1px solid #E3E1DA"><div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ f.k }}</div><div style="font:400 14px Inter;font-variant-numeric:tabular-nums">{{ f.v }}</div></div></sc-for>
+<div style="display:flex;gap:8px"><button onClick="{{ raisePay }}" style="flex:1;background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:12px;font:500 13px Inter;cursor:pointer" style-hover="background:#F2F1ED">Raise rate LKR 20</button><button onClick="{{ closeStaff }}" style="flex:1;background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:12px;font:500 13px Inter;cursor:pointer" style-hover="background:#175A3B">Save</button></div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mareas }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Shift locations</div><button onClick="{{ back }}" style="background:none;border:none;font:400 14px Inter;color:#1F6F4A;cursor:pointer">Done</button></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="font:400 12px/1.5 Inter;color:#5F635C">Locations available when you create a shift.</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ areaFormTitle }}</div>
+<input value="{{ areaName }}" onChange="{{ setAreaName }}" placeholder="Location name — e.g. Stockroom" style="border:1px solid #E3E1DA;border-radius:4px;padding:12px;font:400 14px Inter;background:#fff;outline:none">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Site</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ areaSites }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.tap }}" style="border-radius:999px;padding:7px 12px;font:500 12px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C;white-space:nowrap" style-hover="background:#F2F1ED"><sc-if value="{{ t.on }}"><span style="color:#1F6F4A;font-weight:600">{{ t.name }}</span></sc-if><sc-if value="{{ t.off }}"><span>{{ t.name }}</span></sc-if></button></sc-for>
+</div>
+<div style="display:flex;gap:8px">
+<button onClick="{{ saveArea }}" style="flex:1;background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:13px;font:500 14px Inter;cursor:pointer" style-hover="background:#175A3B">{{ areaCta }}</button>
+<sc-if value="{{ areaEditing }}"><button onClick="{{ cancelArea }}" style="background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:13px 16px;font:500 14px Inter;cursor:pointer" style-hover="background:#F2F1ED">Cancel</button></sc-if>
+</div>
+</div>
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">All locations</div>
+<sc-for list="{{ areaList }}" as="a" hint-placeholder-count="4">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div><div style="font:400 15px Inter">{{ a.name }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ a.sub }}</div></div>
+<div style="display:flex;gap:12px">
+<button onClick="{{ a.edit }}" style="background:none;border:none;font:500 13px Inter;color:#1F6F4A;cursor:pointer;padding:0">Edit</button>
+<button onClick="{{ a.remove }}" style="background:none;border:none;font:500 13px Inter;color:#A03428;cursor:pointer;padding:0">Delete</button>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{ areasEmpty }}"><div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:32px;text-align:center;font:400 14px Inter;color:#8B8F87">No shift locations yet.</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mloc }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Locations</div><button onClick="{{ back }}" style="background:none;border:none;font:400 14px Inter;color:#1F6F4A;cursor:pointer">Done</button></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<sc-for list="{{ locList }}" as="l" hint-placeholder-count="3">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="font:600 16px Inter">{{ l.name }}</div>
+<div style="font:400 12px/1.45 Inter;color:#8B8F87">{{ l.sub }}</div>
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font:400 13px Inter;color:#5F635C">Geofence radius</div><div style="display:flex;align-items:center;gap:10px"><button onClick="{{ l.down }}" style="width:30px;height:30px;border-radius:8px;border:1px solid #CDCAC0;background:#fff;cursor:pointer;font:400 15px Inter">−</button><div style="font:500 14px Inter;font-variant-numeric:tabular-nums;min-width:56px;text-align:center">{{ l.radius }} m</div><button onClick="{{ l.up }}" style="width:30px;height:30px;border-radius:8px;border:1px solid #CDCAC0;background:#fff;cursor:pointer;font:400 15px Inter">+</button></div></div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mreports }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Reports</div><div style="border:1px solid #E3E1DA;background:#F2F1ED;color:#5F635C;border-radius:999px;padding:6px 11px;font:500 11px Inter">Aug 2026</div></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px">
+<sc-for list="{{ repTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.tap }}" style="border-radius:999px;padding:7px 12px;font:500 12px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C;white-space:nowrap" style-hover="background:#F2F1ED"><sc-if value="{{ t.on }}"><span style="color:#1F6F4A;font-weight:600">{{ t.name }}</span></sc-if><sc-if value="{{ t.off }}"><span>{{ t.name }}</span></sc-if></button></sc-for>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">{{ repTab }}</div>
+<div style="font:600 24px Inter;font-variant-numeric:tabular-nums">{{ repHeadline }}</div>
+<div style="font:400 13px Inter;color:#5F635C">{{ repDelta }}</div>
+<div style="display:flex;align-items:flex-end;gap:6px;height:90px">
+<sc-if value="{{ repIsCost }}"><div style="flex:1;height:50%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:65%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:40%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:75%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:95%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:60%;background:#1F6F4A;border-radius:3px"></div><div style="flex:1;height:30%;background:#1F6F4A;border-radius:3px"></div></sc-if>
+<sc-if value="{{ repIsHours }}"><div style="flex:1;height:70%;background:#2F5D8C;border-radius:3px"></div><div style="flex:1;height:85%;background:#2F5D8C;border-radius:3px"></div><div style="flex:1;height:60%;background:#2F5D8C;border-radius:3px"></div><div style="flex:1;height:90%;background:#2F5D8C;border-radius:3px"></div><div style="flex:1;height:80%;background:#2F5D8C;border-radius:3px"></div><div style="flex:1;height:45%;background:#2F5D8C;border-radius:3px"></div><div style="flex:1;height:35%;background:#2F5D8C;border-radius:3px"></div></sc-if>
+<sc-if value="{{ repIsAtt }}"><div style="flex:1;height:95%;background:#C08A2E;border-radius:3px"></div><div style="flex:1;height:92%;background:#C08A2E;border-radius:3px"></div><div style="flex:1;height:78%;background:#C08A2E;border-radius:3px"></div><div style="flex:1;height:96%;background:#C08A2E;border-radius:3px"></div><div style="flex:1;height:88%;background:#C08A2E;border-radius:3px"></div><div style="flex:1;height:64%;background:#C08A2E;border-radius:3px"></div><div style="flex:1;height:72%;background:#C08A2E;border-radius:3px"></div></sc-if>
+</div>
+</div>
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;overflow:hidden">
+<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #E3E1DA;font:500 11px Inter;letter-spacing:.04em;text-transform:uppercase;color:#8B8F87"><div style="flex:1">Location</div><div style="width:64px;text-align:right">Hours</div><div style="width:96px;text-align:right">Cost</div></div>
+<sc-for list="{{ repRows }}" as="r" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #E3E1DA"><div style="flex:1;font:400 14px Inter">{{ r.loc }}</div><div style="width:64px;text-align:right;font:400 14px Inter;font-variant-numeric:tabular-nums">{{ r.hours }}</div><div style="width:96px;text-align:right;font:400 14px Inter;font-variant-numeric:tabular-nums">{{ r.cost }}</div></div>
+</sc-for>
+</div>
+<button onClick="{{ exportCsv }}" style="background:#fff;border:1px solid #CDCAC0;border-radius:8px;padding:14px;font:500 14px Inter;cursor:pointer" style-hover="background:#F2F1ED">Export CSV</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mcast }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA;display:flex;align-items:flex-end;justify-content:space-between;gap:10px"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">Announcement</div><button onClick="{{ back }}" style="background:none;border:none;font:400 14px Inter;color:#5F635C;cursor:pointer">Cancel</button></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87">Send to</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ castTargets }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.tap }}" style="border-radius:999px;padding:7px 12px;font:500 12px Inter;cursor:pointer;border:1px solid #E3E1DA;background:#fff;color:#5F635C;white-space:nowrap" style-hover="background:#F2F1ED"><sc-if value="{{ t.on }}"><span style="color:#1F6F4A;font-weight:600">{{ t.name }}</span></sc-if><sc-if value="{{ t.off }}"><span>{{ t.name }}</span></sc-if></button></sc-for>
+</div>
+<div style="font:400 12px Inter;color:#8B8F87">{{ castAudience }}</div>
+</div>
+<input value="{{ castSubject }}" onChange="{{ setCastSubject }}" placeholder="Subject" style="border:1px solid #E3E1DA;border-radius:4px;padding:13px 12px;font:400 14px Inter;background:#fff;outline:none">
+<textarea value="{{ castBody }}" onChange="{{ setCastBody }}" placeholder="Message" style="border:1px solid #E3E1DA;border-radius:4px;padding:13px 12px;font:400 14px Inter;background:#fff;outline:none;min-height:110px;resize:none"></textarea>
+<button onClick="{{ toggleReceipt }}" style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED">
+<div style="font:400 14px Inter">Require read receipt</div>
+<sc-if value="{{ receipt }}"><div style="width:44px;height:26px;border-radius:999px;background:#1F6F4A;display:flex;align-items:center;justify-content:flex-end;padding:3px;box-sizing:border-box"><div style="width:20px;height:20px;border-radius:999px;background:#fff"></div></div></sc-if>
+<sc-if value="{{ noReceipt }}"><div style="width:44px;height:26px;border-radius:999px;background:#E3E1DA;display:flex;align-items:center;justify-content:flex-start;padding:3px;box-sizing:border-box"><div style="width:20px;height:20px;border-radius:999px;background:#fff"></div></div></sc-if>
+</button>
+<button onClick="{{ sendCast }}" style="background:#1F6F4A;color:#fff;border:none;border-radius:8px;padding:15px;font:500 15px Inter;cursor:pointer" style-hover="background:#175A3B">Send</button>
+<div style="font:500 11px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8B8F87;margin-top:8px">Sent</div>
+<sc-for list="{{ sentCasts }}" as="c" hint-placeholder-count="1">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;padding:14px"><div style="font:400 14px Inter">{{ c.subject }}</div><div style="font:400 12px Inter;color:#8B8F87">{{ c.meta }}</div></div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.mmore }}">
+<div style="flex:none;padding:56px 20px 12px;background:#fff;border-bottom:1px solid #E3E1DA"><div style="font:600 24px/1.25 Fraunces,Georgia,serif">More</div></div>
+<div style="flex:1;min-height:0;overflow-y:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:12px">
+<div style="background:#fff;border:1px solid #E3E1DA;border-radius:8px;overflow:hidden">
+<sc-for list="{{ moreLinks }}" as="l" hint-placeholder-count="6">
+<button onClick="{{ l.tap }}" style="width:100%;box-sizing:border-box;text-align:left;background:#fff;border:none;border-bottom:1px solid #E3E1DA;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer" style-hover="background:#F2F1ED"><div style="font:400 14px Inter">{{ l.title }}</div><div style="font:400 13px Inter;color:#8B8F87">{{ l.right }}</div></button>
+</sc-for>
+</div>
+<button onClick="{{ signOut }}" style="background:#fff;border:1px solid #A03428;border-radius:8px;padding:14px;font:500 14px Inter;color:#A03428;cursor:pointer" style-hover="background:#FBF1EF">Sign out</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ toast }}">
+<div style="position:absolute;left:16px;right:16px;bottom:104px;background:#1C1F1C;color:#fff;border-radius:8px;padding:14px 16px;font:400 13px/1.4 Inter;z-index:40">{{ toast }}</div>
+</sc-if>
+
+<sc-if value="{{ empTabs }}">
+<div style="position:absolute;bottom:0;left:0;right:0;height:84px;background:#fff;border-top:1px solid #E3E1DA;display:flex;align-items:flex-start;justify-content:space-around;padding:10px 6px 0;z-index:30">
+<sc-for list="{{ tabsEmp }}" as="t" hint-placeholder-count="5">
+<sc-if value="{{ t.isClock }}">
+<button onClick="{{ t.tap }}" style="width:58px;height:58px;margin-top:-18px;border-radius:999px;background:#1F6F4A;border:3px solid #fff;color:#fff;font:600 10px/1.15 Inter;cursor:pointer;box-shadow:0 4px 12px rgba(28,31,28,.18)" style-hover="background:#175A3B">{{ t.label }}</button>
+</sc-if>
+<sc-if value="{{ t.isTab }}">
+<button onClick="{{ t.tap }}" style="width:62px;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:4px 0">
+<sc-if value="{{ t.on }}"><div style="height:22px;display:flex;align-items:center;justify-content:center;color:#1F6F4A;width:22px;overflow:hidden"><x-import component-from-global-scope="LedgerDesignSystem_7a4742.Icon" name="{{ t.icon }}" size="{{ iconSize }}" hint-size="22px,22px"></x-import></div><div style="font:600 9px Inter;color:#1F6F4A">{{ t.label }}</div></sc-if>
+<sc-if value="{{ t.off }}"><div style="height:22px;display:flex;align-items:center;justify-content:center;color:#8B8F87;width:22px;overflow:hidden"><x-import component-from-global-scope="LedgerDesignSystem_7a4742.Icon" name="{{ t.icon }}" size="{{ iconSize }}" hint-size="22px,22px"></x-import></div><div style="font:500 9px Inter;color:#8B8F87">{{ t.label }}</div></sc-if>
+</button>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ mgrTabs }}">
+<div style="position:absolute;bottom:0;left:0;right:0;height:84px;background:#fff;border-top:1px solid #E3E1DA;display:flex;align-items:flex-start;justify-content:space-around;padding:12px 6px 0;z-index:30">
+<sc-for list="{{ tabsMgr }}" as="t" hint-placeholder-count="5">
+<button onClick="{{ t.tap }}" style="width:64px;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:4px 0">
+<sc-if value="{{ t.on }}"><div style="height:22px;display:flex;align-items:center;justify-content:center;color:#1F6F4A;width:22px;overflow:hidden"><x-import component-from-global-scope="LedgerDesignSystem_7a4742.Icon" name="{{ t.icon }}" size="{{ iconSize }}" hint-size="22px,22px"></x-import></div><div style="font:600 9px Inter;color:#1F6F4A">{{ t.label }}</div></sc-if>
+<sc-if value="{{ t.off }}"><div style="height:22px;display:flex;align-items:center;justify-content:center;color:#8B8F87;width:22px;overflow:hidden"><x-import component-from-global-scope="LedgerDesignSystem_7a4742.Icon" name="{{ t.icon }}" size="{{ iconSize }}" hint-size="22px,22px"></x-import></div><div style="font:500 9px Inter;color:#8B8F87">{{ t.label }}</div></sc-if>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:482,&quot;height&quot;:954},&quot;employeeName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;N. Wijesinghe&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;}}">
+const two = n => String(n).padStart(2, '0');
+const hhmm = d => two(d.getHours()) + ':' + two(d.getMinutes());
+const ini = n => n.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+
+class Component extends DCLogic {
+  state = {
+    route: 'splash', role: null, stack: [], now: Date.now(),
+    email: 'user@user.com', pwd: '••••••••', loginError: '', resetSent: false,
+    clockedIn: false, clockedAt: null, onBreak: false, geoIn: true,
+    view: 'Week', selShift: 's1', swapPick: null, swapReason: '',
+    tofFrom: '2 Sep 2026', tofTo: '4 Sep 2026', tofType: 'Annual leave', tofNote: '',
+    tofBalance: 11.5, maxHours: 40, query: '', site: 'Store 04', teamSite: 'Store 04',
+    repTab: 'Labour cost', castTo: 'Store 04', castSubject: '', castBody: '', receipt: true,
+    published: false, selStaff: null,
+    buildTab: 'Create shifts', newName: '', newStart: '2026-08-24T09:00', newEnd: '2026-08-24T17:00', newDept: 'Floor',
+    defs: [
+      { id: 'd1', name: 'Morning floor', start: '2026-08-24T09:00', end: '2026-08-24T17:30', dept: 'Floor', leader: 'A. Perera', workers: ['N. Wijesinghe'] },
+      { id: 'd2', name: 'Late till', start: '2026-08-24T12:00', end: '2026-08-24T20:00', dept: 'Till', leader: null, workers: [] },
+      { id: 'd3', name: 'Saturday stockroom', start: '2026-08-29T08:00', end: '2026-08-29T14:00', dept: 'Stockroom', leader: null, workers: [] }
+    ],
+    assignId: null, assignLeader: null, assignWorkers: [],
+    areas: [
+      { id: 'ar1', name: 'Floor', site: 'Store 04' },
+      { id: 'ar2', name: 'Till', site: 'Store 04' },
+      { id: 'ar3', name: 'Stockroom', site: 'Store 04' },
+      { id: 'ar4', name: 'Picking', site: 'Warehouse' }
+    ],
+    areaName: '', areaSite: 'Store 04', areaEdit: null,
+    shifts: [
+      { id: 's1', day: 'Thu 20 Aug', time: '09:00 — 17:30', role: 'Floor associate', loc: 'Store 04', dept: 'Front of house', hours: '8.5', status: 'Confirmed', notes: 'Stock delivery lands at 10:00. Two extra on the floor until noon.' },
+      { id: 's2', day: 'Fri 21 Aug', time: '12:00 — 20:00', role: 'Till', loc: 'Store 04', dept: 'Front of house', hours: '8.0', status: 'Confirmed', notes: 'Late close. Cash-up with the duty manager.' },
+      { id: 's3', day: 'Sun 23 Aug', time: '09:00 — 15:00', role: 'Floor associate', loc: 'Store 11', dept: 'Floor', hours: '6.0', status: 'Other site', notes: 'Kandy store. Ask for R. Fernando on arrival.' }
+    ],
+    approvals: [
+      { id: 'a1', kind: 'Time off', title: 'S. Jayawardena · 2 — 4 Sep', sub: 'Annual leave · 3 days · 11.5 remaining', warnText: 'Leaves Thu evening short one person.', approveCta: 'Approve' },
+      { id: 'a2', kind: 'Clock exception', title: 'M. De Silva · missed clock-out', sub: '18 Aug · in 09:00 · out —', okText: 'Suggested clock-out 17:30 from the schedule.', approveCta: 'Set 17:30' }
+    ],
+    timesheet: [
+      { day: 'Mon 17', io: '09:02 — 17:31', hours: '8.0' },
+      { day: 'Tue 18', io: '09:00 — 17:35', hours: '8.1' },
+      { day: 'Wed 19', io: '12:04 — 20:00', hours: '7.4' },
+      { day: 'Thu 20', io: 'Not started', hours: '—' }
+    ],
+    activity: [
+      { id: 'n1', title: '2 open shifts at Store 11', sub: 'Sat 22 Aug · first come', unread: true },
+      { id: 'n2', title: 'Schedule published — week of 24 Aug', sub: 'Yesterday', unread: true },
+      { id: 'n3', title: 'Missed clock-out on 18 Aug', sub: 'Manager corrected to 17:35', unread: false },
+      { id: 'n4', title: 'Announcement — stocktake Sunday', sub: '2 days ago · read', unread: false }
+    ],
+    open: [
+      { id: 'o1', when: 'Sat 22 Aug · 10:00 — 18:00', what: 'Till · Store 04', claims: ['A. Perera', 'M. De Silva'], mine: false },
+      { id: 'o2', when: 'Sat 22 Aug · 14:00 — 22:00', what: 'Floor · Store 11', claims: [], mine: false }
+    ],
+    tof: [{ id: 't0', range: '14 Jul 2026', kind: 'Sick · 1 day', status: 'Approved' }],
+    notif: { published: true, reminder: true, openShifts: true, requests: true, announce: false },
+    avail: [
+      { day: 'Monday', val: '09:00 — 18:00', on: true },
+      { day: 'Tuesday', val: '09:00 — 18:00', on: true },
+      { day: 'Wednesday', val: '09:00 — 18:00', on: false },
+      { day: 'Thursday', val: 'Any time', on: true },
+      { day: 'Friday', val: '12:00 — 22:00', on: true },
+      { day: 'Saturday', val: 'Evenings only', on: true },
+      { day: 'Sunday', val: 'Evenings only', on: false }
+    ],
+    staff: [
+      { id: 'p1', name: 'A. Perera', role: 'Floor', loc: 'Store 04', rate: 320 },
+      { id: 'p2', name: 'N. Wijesinghe', role: 'Floor', loc: 'Store 04', rate: 300 },
+      { id: 'p3', name: 'S. Jayawardena', role: 'Till', loc: 'Store 04', rate: 310 },
+      { id: 'p4', name: 'M. De Silva', role: 'Floor', loc: 'Store 11', rate: 300 },
+      { id: 'p5', name: 'R. Fernando', role: 'Store manager', loc: 'Store 04', rate: 520 }
+    ],
+    locs: [
+      { id: 'l1', name: 'Store 04 — Nugegoda', sub: '14 staff · Front of house, Till, Stockroom', radius: 120 },
+      { id: 'l2', name: 'Store 11 — Kandy', sub: '8 staff · Floor, Till', radius: 150 },
+      { id: 'l3', name: 'Warehouse — Kelaniya', sub: '5 staff · Picking, Dispatch', radius: 300 }
+    ],
+    casts: [{ id: 'c0', subject: 'Stocktake Sunday', meta: '18 Aug · 12 of 14 read' }],
+    toast: null
+  };
+
+  componentDidMount() {
+    this.timer = setInterval(() => this.setState({ now: Date.now() }), 1000);
+    this.splash = setTimeout(() => {
+      if (this.state.route === 'splash') this.setState({ route: 'login' });
+    }, 1400);
+  }
+  componentWillUnmount() { clearInterval(this.timer); clearTimeout(this.splash); clearTimeout(this.toastT); }
+
+  go = (route) => this.setState(s => ({ route, stack: [...s.stack, s.route] }));
+  back = () => this.setState(s => ({ route: s.stack[s.stack.length - 1] || 'home', stack: s.stack.slice(0, -1) }));
+  say = (msg) => {
+    clearTimeout(this.toastT);
+    this.setState({ toast: msg });
+    this.toastT = setTimeout(() => this.setState({ toast: null }), 2600);
+  };
+  push = (title, sub) => this.setState(s => ({ activity: [{ id: 'n' + Date.now(), title, sub, unread: true }, ...s.activity] }));
+
+  renderVals() {
+    const s = this.state;
+    const R = r => s.route === r;
+    const nav = {};
+    ['login', 'signup', 'forgot', 'home', 'schedule', 'shift', 'requests', 'avail', 'swap', 'timeoff', 'activity', 'clock', 'timesheet', 'team', 'empopen', 'profile', 'notif', 'help', 'mdash', 'mbuild', 'mapprovals', 'mopen', 'mstaff', 'mloc', 'mareas', 'mreports', 'mcast', 'mmore'].forEach(k => { nav[k] = () => this.go(k); });
+
+    const shift = s.shifts.find(x => x.id === s.selShift) || s.shifts[0];
+    const shiftRoleLoc = shift.role + ' · ' + shift.loc;
+    const empRoutes = ['home', 'schedule', 'shift', 'requests', 'avail', 'swap', 'timeoff', 'activity', 'clock', 'timesheet', 'team', 'empopen', 'profile', 'notif', 'help'];
+    const mgrRoutes = ['mdash', 'mbuild', 'mapprovals', 'mopen', 'mstaff', 'mloc', 'mareas', 'mreports', 'mcast', 'mmore'];
+
+    const elapsedMs = s.clockedIn ? s.now - s.clockedAt : 0;
+    const el = n => two(Math.floor(n));
+    const elapsed = el(elapsedMs / 3600000) + ':' + el((elapsedMs / 60000) % 60) + ':' + el((elapsedMs / 1000) % 60);
+    const worked = s.timesheet.reduce((a, r) => a + (parseFloat(r.hours) || 0), 0);
+
+    const coworkerData = [
+      { name: 'A. Perera', note: 'Same role · free that day' },
+      { name: 'S. Jayawardena', note: 'Same role · would hit 42 h' },
+      { name: 'M. De Silva', note: 'Store 11 · trained for Till' }
+    ];
+
+    const fmt = v => {
+      const d = new Date(v);
+      if (isNaN(d)) return v;
+      const mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()];
+      return d.getDate() + ' ' + mo + ' ' + d.getFullYear() + ' · ' + hhmm(d);
+    };
+    const whenOf = d => fmt(d.start) + ' — ' + hhmm(new Date(d.end));
+    const staffingOf = d => d.leader ? 'Leader ' + d.leader + ' · ' + d.workers.length + ' worker' + (d.workers.length === 1 ? '' : 's') : 'Unassigned';
+    const rosterNames = ['A. Perera', 'N. Wijesinghe', 'S. Jayawardena', 'M. De Silva'];
+    const assignSel = s.defs.find(d => d.id === s.assignId);
+
+    const q = s.query.trim().toLowerCase();
+    const match = p => !q || p.name.toLowerCase().includes(q) || p.role.toLowerCase().includes(q);
+    const teamList = s.staff.filter(p => (s.teamSite === 'All sites' || p.loc === s.teamSite) && match(p))
+      .map(p => ({ ini: ini(p.name), name: p.name, sub: p.role + ' · ' + p.loc, call: () => this.say('Calling ' + p.name + '…') }));
+    const staffList = s.staff.filter(match).map(p => ({
+      ini: ini(p.name), name: p.name, sub: p.role + ' · ' + p.loc + ' · LKR ' + p.rate.toFixed(2) + '/h',
+      open: () => this.setState({ selStaff: p.id })
+    }));
+    const staffSel = s.staff.find(p => p.id === s.selStaff);
+
+    const repData = {
+      'Labour cost': { headline: 'LKR 1,842,300.00', delta: 'You spent 12.4% more than last month.' },
+      'Hours': { headline: '2,040 h', delta: '84 hours of that was overtime.' },
+      'Attendance': { headline: '96.2% on time', delta: '11 late clock-ins across 3 locations.' }
+    }[s.repTab];
+
+    const audience = { 'Store 04': '14 people', 'Store 11': '8 people', 'Sat 22 shift': '5 people', 'All staff': '27 people' }[s.castTo];
+
+    const approvals = s.approvals.map(a => ({
+      kind: a.kind, title: a.title, sub: a.sub,
+      warn: !!a.warnText, warnText: a.warnText || '', ok: !!a.okText, okText: a.okText || '',
+      approveCta: a.approveCta,
+      approve: () => {
+        this.setState(st => {
+          const shifts = a.swapShift
+            ? st.shifts.map(x => x.id === a.swapShift ? { ...x, status: 'Swapped — ' + a.swapWith } : x)
+            : st.shifts;
+          const tof = a.tofId ? st.tof.map(t => t.id === a.tofId ? { ...t, status: 'Approved' } : t) : st.tof;
+          return { approvals: st.approvals.filter(x => x.id !== a.id), shifts, tof };
+        });
+        this.push(a.kind + ' approved — ' + a.title, 'R. Fernando · just now');
+        this.say(a.kind + ' approved.');
+      },
+      decline: () => {
+        this.setState(st => {
+          const shifts = a.swapShift ? st.shifts.map(x => x.id === a.swapShift ? { ...x, status: 'Confirmed' } : x) : st.shifts;
+          const tof = a.tofId ? st.tof.map(t => t.id === a.tofId ? { ...t, status: 'Declined' } : t) : st.tof;
+          return { approvals: st.approvals.filter(x => x.id !== a.id), shifts, tof };
+        });
+        this.push(a.kind + ' declined — ' + a.title, 'R. Fernando · just now');
+        this.say(a.kind + ' declined.');
+      }
+    }));
+
+    const openList = s.open.map(o => {
+      const names = o.mine ? [...o.claims, 'You'] : o.claims;
+      return {
+        when: o.when, what: o.what, mine: o.mine, notMine: !o.mine,
+        hasClaims: names.length > 0, first: names[0] || '',
+        claimPill: names.length ? names.length + ' claims' : 'No claims',
+        claimNote: names.length ? 'Claims: ' + names.join(', ') : 'Posted 2 days ago · 9 eligible notified',
+        claim: () => {
+          this.setState(st => ({ open: st.open.map(x => x.id === o.id ? { ...x, mine: true } : x) }));
+          this.setState(st => ({ approvals: [{ id: 'ac' + o.id, kind: 'Open shift claim', title: 'N. Wijesinghe claimed ' + o.when, sub: o.what, okText: 'No clash with their week. 32.5 h before this shift.', approveCta: 'Assign' }, ...st.approvals] }));
+          this.say('Claim sent to your manager.');
+        },
+        assign: () => {
+          this.setState(st => ({ open: st.open.filter(x => x.id !== o.id) }));
+          this.push('You were assigned ' + o.when, o.what + ' · just now');
+          this.say(names[0] + ' assigned to ' + o.when + '.');
+        },
+        unpost: () => {
+          this.setState(st => ({ open: st.open.filter(x => x.id !== o.id) }));
+          this.say('Shift unposted.');
+        }
+      };
+    });
+
+    const tabsEmp = [
+      { label: 'Home', route: 'home', icon: 'layout-dashboard' }, { label: 'Schedule', route: 'schedule', icon: 'calendar' },
+      { label: 'clock', route: 'clock', icon: 'check' },
+      { label: 'Requests', route: 'requests', icon: 'receipt' }, { label: 'Me', route: 'profile', icon: 'settings' }
+    ].map(t => {
+      const isClock = t.route === 'clock';
+      const on = t.route === s.route || (t.route === 'requests' && ['avail', 'swap', 'timeoff', 'empopen'].includes(s.route)) || (t.route === 'profile' && ['team', 'notif', 'help', 'timesheet'].includes(s.route)) || (t.route === 'schedule' && s.route === 'shift');
+      return { label: isClock ? (s.clockedIn ? 'Clock out' : 'Clock in') : t.label, icon: t.icon, isClock, isTab: !isClock, on: !isClock && on, off: !isClock && !on, tap: () => this.go(t.route) };
+    });
+    const tabsMgr = [
+      { label: 'Overview', route: 'mdash', icon: 'layout-dashboard' }, { label: 'Build', route: 'mbuild', icon: 'calendar' },
+      { label: 'Approvals', route: 'mapprovals', icon: 'check' }, { label: 'Team', route: 'mstaff', icon: 'list' }, { label: 'More', route: 'mmore', icon: 'ellipsis' }
+    ].map(t => {
+      const on = t.route === s.route || (t.route === 'mmore' && ['mopen', 'mloc', 'mareas', 'mreports', 'mcast'].includes(s.route));
+      return { label: t.label, icon: t.icon, on, off: !on, tap: () => this.go(t.route) };
+    });
+
+    return {
+      is: {
+        splash: R('splash'), login: R('login'), signup: R('signup'), forgot: R('forgot'),
+        home: R('home'), schedule: R('schedule'), shift: R('shift'), requests: R('requests'), avail: R('avail'),
+        swap: R('swap'), timeoff: R('timeoff'), activity: R('activity'), clock: R('clock'), timesheet: R('timesheet'),
+        team: R('team'), empopen: R('empopen'), profile: R('profile'), notif: R('notif'), help: R('help'),
+        mdash: R('mdash'), mbuild: R('mbuild'), mapprovals: R('mapprovals'), mopen: R('mopen'), mstaff: R('mstaff'),
+        mloc: R('mloc'), mareas: R('mareas'), mreports: R('mreports'), mcast: R('mcast'), mmore: R('mmore')
+      },
+      nav, back: this.back, toast: s.toast, iconSize: 22,
+      empTabs: empRoutes.includes(s.route), mgrTabs: mgrRoutes.includes(s.route), tabsEmp, tabsMgr,
+
+      email: s.email, pwd: s.pwd, loginError: s.loginError, resetSent: s.resetSent,
+      setEmail: e => this.setState({ email: e.target.value, loginError: '' }),
+      setPwd: e => this.setState({ pwd: e.target.value, loginError: '' }),
+      signIn: () => {
+        const e = s.email.trim().toLowerCase();
+        if (!s.pwd) return this.setState({ loginError: 'Enter your password' });
+        if (e === 'manager@manager.com') { this.setState({ role: 'mgr', loginError: '' }); this.go('mdash'); }
+        else if (e === 'user@user.com') { this.setState({ role: 'emp', loginError: '' }); this.go('home'); }
+        else this.setState({ loginError: 'Use manager@manager.com or user@user.com' });
+      },
+      sendReset: () => { this.setState({ resetSent: true }); this.say('Reset link sent.'); },
+      signOut: () => this.setState({ route: 'login', stack: [], role: null }),
+
+      meName: this.props.employeeName || 'N. Wijesinghe',
+      meIni: ini(this.props.employeeName || 'N. Wijesinghe'),
+      unreadCount: s.activity.filter(a => a.unread).length,
+      nextShift: { time: s.shifts[0].time, sub: 'Store 04 · Floor · Nugegoda' },
+      nextLabel: s.clockedIn ? 'On shift' : 'Next shift',
+      clockPill: s.clockedIn ? 'Since ' + hhmm(new Date(s.clockedAt)) : 'Starts in 40m',
+      clockCta: s.clockedIn ? 'Clock out' : 'Clock in',
+      clockTitle: s.clockedIn ? 'On shift' : 'Clock in',
+      clockTime: hhmm(new Date(s.now)),
+      weekHours: worked.toFixed(1), shiftsLeft: s.shifts.length,
+      activityTop: s.activity.slice(0, 2),
+      activity: s.activity.map(a => ({ title: a.title, sub: a.sub, unread: a.unread, read: !a.unread })),
+      markRead: () => { this.setState(st => ({ activity: st.activity.map(a => ({ ...a, unread: false })) })); this.say('All caught up.'); },
+      upcoming: s.shifts.map(x => ({ day: x.day, loc: x.loc, time: x.time, status: x.status, tap: () => { this.setState({ selShift: x.id }); this.go('shift'); } })),
+
+      views: ['Day', 'Week', 'Month'].map(v => ({ name: v, on: s.view === v, off: s.view !== v, tap: () => this.setState({ view: v }) })),
+      viewNote: { Day: 'Thu 20 Aug — one shift.', Week: 'Week of 18 Aug — 3 shifts, 22.5 h.', Month: 'August 2026 — 14 shifts, 108 h.' }[s.view],
+      weekStrip: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((l, i) => ({ letter: l, on: [2, 3, 4, 6].includes(i), off: ![2, 3, 4, 6].includes(i) })),
+      myShifts: s.shifts.map(x => ({ day: x.day, time: x.time, roleLoc: x.role + ' · ' + x.loc, status: x.status, tap: () => { this.setState({ selShift: x.id }); this.go('shift'); } })),
+      openCount: s.open.length,
+
+      shift: { day: shift.day, time: shift.time, hours: shift.hours, notes: shift.notes, roleLoc: shiftRoleLoc },
+      shiftFacts: [{ k: 'Role', v: shift.role }, { k: 'Location', v: shift.loc }, { k: 'Department', v: shift.dept }, { k: 'Manager', v: 'R. Fernando' }],
+      crew: [{ name: 'A. Perera', role: 'Floor', ini: 'AP' }, { name: 'S. Jayawardena', role: 'Till', ini: 'SJ' }, { name: 'R. Fernando', role: 'Duty manager', ini: 'RF' }],
+      startSwap: () => { this.setState({ swapPick: null, swapReason: '' }); this.go('swap'); },
+
+      requestLinks: [
+        { title: 'Shift swap', sub: 'Hand a shift to a coworker', tap: () => this.go('swap') },
+        { title: 'Time off', sub: s.tofBalance + ' days remaining', tap: () => this.go('timeoff') },
+        { title: 'Availability', sub: 'Recurring weekly hours', tap: () => this.go('avail') },
+        { title: 'Open shifts', sub: s.open.length + ' available', tap: () => this.go('empopen') },
+        { title: 'Activity', sub: s.activity.filter(a => a.unread).length + ' unread', tap: () => this.go('activity') }
+      ],
+
+      availRows: s.avail.map((d, i) => ({ day: d.day, val: d.val, on: d.on, off: !d.on, tap: () => this.setState(st => ({ avail: st.avail.map((x, j) => j === i ? { ...x, on: !x.on } : x) })) })),
+      maxHours: s.maxHours,
+      maxUp: () => this.setState(st => ({ maxHours: Math.min(48, st.maxHours + 2) })),
+      maxDown: () => this.setState(st => ({ maxHours: Math.max(16, st.maxHours - 2) })),
+      saveAvail: () => { this.say('Availability saved. Your manager can see it.'); this.back(); },
+
+      coworkers: coworkerData.map(c => ({ name: c.name, note: c.note, ini: ini(c.name), on: s.swapPick === c.name, off: s.swapPick !== c.name, tap: () => this.setState({ swapPick: c.name }) })),
+      swapReason: s.swapReason, setSwapReason: e => this.setState({ swapReason: e.target.value }),
+      swapFootnote: s.swapPick ? 'Goes to ' + s.swapPick + ', then to your manager.' : 'Pick a coworker to send the request.',
+      sendSwap: () => {
+        if (!s.swapPick) return this.say('Pick a coworker first.');
+        this.setState(st => ({
+          shifts: st.shifts.map(x => x.id === shift.id ? { ...x, status: 'Swap pending' } : x),
+          approvals: [{ id: 'as' + Date.now(), kind: 'Swap', title: 'N. Wijesinghe → ' + s.swapPick, sub: shift.day + ' · ' + shift.time + ' · ' + shiftRoleLoc, okText: 'Both trained. ' + s.swapPick + ' at 36 h after the swap.', approveCta: 'Approve', swapShift: shift.id, swapWith: s.swapPick }, ...st.approvals]
+        }));
+        this.push('Swap request sent to ' + s.swapPick, shift.day + ' · awaiting approval');
+        this.say('Swap sent. It is in your manager\u2019s queue.');
+        this.go('schedule');
+      },
+
+      tofBalance: s.tofBalance, tofFrom: s.tofFrom, tofTo: s.tofTo, tofNote: s.tofNote,
+      setTofFrom: e => this.setState({ tofFrom: e.target.value }),
+      setTofTo: e => this.setState({ tofTo: e.target.value }),
+      setTofNote: e => this.setState({ tofNote: e.target.value }),
+      tofTypes: ['Annual leave', 'Sick', 'Unpaid'].map(t => ({ name: t, on: s.tofType === t, off: s.tofType !== t, tap: () => this.setState({ tofType: t }) })),
+      tofList: s.tof,
+      submitTof: () => {
+        const id = 't' + Date.now();
+        this.setState(st => ({
+          tof: [{ id, range: st.tofFrom + ' — ' + st.tofTo, kind: st.tofType + ' · 3 days', status: 'Pending' }, ...st.tof],
+          approvals: [{ id: 'at' + id, kind: 'Time off', title: 'N. Wijesinghe · ' + st.tofFrom + ' — ' + st.tofTo, sub: st.tofType + ' · 3 days · ' + st.tofBalance + ' remaining', warnText: 'Two people already off that week.', approveCta: 'Approve', tofId: id }, ...st.approvals]
+        }));
+        this.push('Time-off request submitted', s.tofFrom + ' — ' + s.tofTo + ' · pending');
+        this.say('Request submitted.');
+      },
+
+      geoIn: s.geoIn, inRange: s.geoIn, outRange: !s.geoIn, canClock: s.geoIn,
+      geoLabel: s.geoIn ? 'In range' : 'Out of range',
+      toggleGeo: () => this.setState(st => ({ geoIn: !st.geoIn })),
+      clockedIn: s.clockedIn, elapsed,
+      breakCta: s.onBreak ? 'End break' : 'Start break',
+      toggleBreak: () => { this.setState(st => ({ onBreak: !st.onBreak })); this.say(s.onBreak ? 'Break ended.' : 'Break started.'); },
+      toggleClock: () => {
+        if (!s.clockedIn) {
+          this.setState({ clockedIn: true, clockedAt: Date.now(), onBreak: false });
+          this.say('Clocked in at ' + hhmm(new Date()) + '.');
+        } else {
+          const inT = hhmm(new Date(s.clockedAt)), outT = hhmm(new Date());
+          const h = (elapsedMs / 3600000).toFixed(1);
+          this.setState(st => ({
+            clockedIn: false, onBreak: false,
+            timesheet: st.timesheet.map(r => r.day === 'Thu 20' ? { ...r, io: inT + ' — ' + outT, hours: h } : r)
+          }));
+          this.push('Shift complete — ' + h + ' h logged', 'Thu 20 Aug · ' + inT + ' — ' + outT);
+          this.say('Clocked out. ' + h + ' h logged.');
+          this.go('timesheet');
+        }
+      },
+      requestManual: () => {
+        this.setState(st => ({ approvals: [{ id: 'am' + Date.now(), kind: 'Clock exception', title: 'N. Wijesinghe · manual entry', sub: 'Thu 20 Aug · outside geofence at ' + hhmm(new Date()), warnText: 'Recorded 420 m from Store 04.', approveCta: 'Accept' }, ...st.approvals] }));
+        this.say('Manual entry sent for approval.');
+      },
+      timesheet: s.timesheet,
+      dispute: () => { this.say('Dispute sent to R. Fernando.'); this.push('Timesheet dispute raised', 'Wed 19 Aug · awaiting review'); },
+
+      query: s.query, setQuery: e => this.setState({ query: e.target.value }),
+      siteTabs: ['Store 04', 'Store 11', 'All sites'].map(t => ({ name: t, on: s.teamSite === t, off: s.teamSite !== t, tap: () => this.setState({ teamSite: t }) })),
+      teamList, teamEmpty: teamList.length === 0,
+      openList, openEmpty: s.open.length === 0,
+
+      profileLinks: [
+        { title: 'Availability', right: 'Edit', tap: () => this.go('avail') },
+        { title: 'Timesheet', right: worked.toFixed(1) + ' h', tap: () => this.go('timesheet') },
+        { title: 'Time off', right: s.tofBalance + ' days', tap: () => this.go('timeoff') },
+        { title: 'Team directory', right: '›', tap: () => this.go('team') },
+        { title: 'Notification settings', right: '›', tap: () => this.go('notif') },
+        { title: 'Help & support', right: '›', tap: () => this.go('help') }
+      ],
+      notifRows: [
+        { key: 'published', label: 'Schedule published' }, { key: 'reminder', label: 'Shift reminder' },
+        { key: 'openShifts', label: 'Open shifts posted' }, { key: 'requests', label: 'Swap & time-off updates' },
+        { key: 'announce', label: 'Announcements' }
+      ].map(n => ({ label: n.label, on: s.notif[n.key], off: !s.notif[n.key], tap: () => this.setState(st => ({ notif: { ...st.notif, [n.key]: !st.notif[n.key] } })) })),
+      helpTopics: ['How swaps get approved', 'Clock in when out of range', 'Fixing a wrong timesheet entry', 'Claiming an open shift'].map(t => ({ title: t, tap: () => this.say('Opening “' + t + '”…') })),
+
+      site: s.site,
+      cycleSite: () => this.setState(st => ({ site: st.site === 'Store 04' ? 'Store 11' : st.site === 'Store 11' ? 'All sites' : 'Store 04' })),
+      kpis: [
+        { label: 'Coverage today', value: s.site === 'Store 11' ? '88%' : '94%' },
+        { label: 'Open shifts', value: String(s.open.length) },
+        { label: 'Pending approvals', value: String(s.approvals.length) },
+        { label: 'Clock exceptions', value: '2' }
+      ],
+      needsYou: [
+        ...s.approvals.slice(0, 2).map(a => ({ title: a.kind + ' — ' + a.title, cta: 'Review', tap: () => this.go('mapprovals') })),
+        { title: 'Sat evening unstaffed · Store 11', cta: 'Post', tap: () => this.go('mopen') }
+      ],
+      needsEmpty: s.approvals.length === 0,
+
+      draftLabel: s.published ? 'Published · week of 24 Aug' : 'Draft · week of 24 Aug',
+      buildTabs: ['Create shifts', 'Assign staff'].map(t => ({ name: t, on: s.buildTab === t, off: s.buildTab !== t, tap: () => this.setState({ buildTab: t }) })),
+      buildIsCreate: s.buildTab === 'Create shifts', buildIsAssign: s.buildTab === 'Assign staff',
+      newName: s.newName, newStart: s.newStart, newEnd: s.newEnd,
+      setNewName: e => this.setState({ newName: e.target.value }),
+      setNewStart: e => this.setState({ newStart: e.target.value }),
+      setNewEnd: e => this.setState({ newEnd: e.target.value }),
+      deptOptions: s.areas.map(a => ({ name: a.name, on: s.newDept === a.name, off: s.newDept !== a.name, tap: () => this.setState({ newDept: a.name }) })),
+      createShift: () => {
+        if (!s.newName.trim()) return this.say('Enter a shift name.');
+        if (new Date(s.newEnd) <= new Date(s.newStart)) return this.say('End time must be after the start time.');
+        this.setState(st => ({
+          defs: [...st.defs, { id: 'd' + Date.now(), name: st.newName.trim(), start: st.newStart, end: st.newEnd, dept: st.newDept, leader: null, workers: [] }],
+          newName: ''
+        }));
+        this.say(s.newName.trim() + ' created. Staff it in Assign.');
+      },
+      defList: s.defs.map(d => ({
+        name: d.name, when: whenOf(d), staffing: d.dept + ' · ' + staffingOf(d),
+        remove: () => { this.setState(st => ({ defs: st.defs.filter(x => x.id !== d.id), assignId: st.assignId === d.id ? null : st.assignId })); this.say(d.name + ' deleted.'); }
+      })),
+      defsEmpty: s.defs.length === 0,
+      assignPicks: s.defs.map(d => ({
+        name: d.name, when: whenOf(d), staffing: d.dept + ' · ' + staffingOf(d),
+        on: s.assignId === d.id, off: s.assignId !== d.id,
+        tap: () => this.setState({ assignId: d.id, assignLeader: d.leader, assignWorkers: d.workers })
+      })),
+      assignOpen: !!assignSel,
+      assignSel: assignSel ? { name: assignSel.name, when: whenOf(assignSel) } : { name: '', when: '' },
+      leaderOptions: rosterNames.map(n => ({ name: n, on: s.assignLeader === n, off: s.assignLeader !== n, tap: () => this.setState({ assignLeader: n }) })),
+      workerOptions: rosterNames.filter(n => n !== s.assignLeader).map(n => {
+        const p = s.staff.find(x => x.name === n) || {};
+        const on = s.assignWorkers.includes(n);
+        return {
+          name: n, ini: ini(n), sub: (p.role || '') + ' · ' + (p.loc || ''), on, off: !on,
+          tap: () => this.setState(st => ({ assignWorkers: on ? st.assignWorkers.filter(w => w !== n) : [...st.assignWorkers, n] }))
+        };
+      }),
+      assignSummary: (s.assignLeader ? 'Leader ' + s.assignLeader : 'No leader picked') + ' · ' + s.assignWorkers.length + ' worker' + (s.assignWorkers.length === 1 ? '' : 's') + ' selected',
+      saveAssign: () => {
+        if (!s.assignLeader) return this.say('Pick a shift leader.');
+        this.setState(st => ({ defs: st.defs.map(d => d.id === st.assignId ? { ...d, leader: st.assignLeader, workers: st.assignWorkers } : d) }));
+        this.say(assignSel.name + ' staffed · leader ' + s.assignLeader + '.');
+      },
+      postAssign: () => {
+        this.setState(st => ({ open: [...st.open, { id: 'o' + Date.now(), when: whenOf(assignSel), what: assignSel.name + ' · ' + st.site, claims: [], mine: false }] }));
+        this.say(assignSel.name + ' posted to the open shift board.');
+      },
+      draftState: s.published ? 'Published' : 'Not published',
+      publish: () => { this.setState({ published: true }); this.push('Schedule published — week of 24 Aug', 'R. Fernando · just now'); this.say('Schedule published. Everyone notified.'); },
+
+      approvals, approvalCount: s.approvals.length, approvalsEmpty: s.approvals.length === 0,
+      postShift: () => { this.setState(st => ({ open: [...st.open, { id: 'o' + Date.now(), when: 'Sun 23 Aug · 09:00 — 15:00', what: 'Stockroom · ' + st.site, claims: [], mine: false }] })); this.say('Open shift posted.'); },
+
+      staffList, staffOpen: !!staffSel, staffSel: staffSel || { name: '' },
+      staffFields: staffSel ? [{ k: 'Role', v: staffSel.role }, { k: 'Location', v: staffSel.loc }, { k: 'Pay rate', v: 'LKR ' + staffSel.rate.toFixed(2) + '/h' }, { k: 'Max weekly', v: '40 h' }, { k: 'Permissions', v: staffSel.role === 'Store manager' ? 'Manager' : 'Employee' }] : [],
+      closeStaff: () => this.setState({ selStaff: null }),
+      raisePay: () => { this.setState(st => ({ staff: st.staff.map(p => p.id === st.selStaff ? { ...p, rate: p.rate + 20 } : p) })); this.say('Pay rate updated.'); },
+      addStaff: () => this.say('Invite sent by email.'),
+
+      areaFormTitle: s.areaEdit ? 'Update location' : 'New location',
+      areaCta: s.areaEdit ? 'Save location' : 'Add location',
+      areaEditing: !!s.areaEdit, areaName: s.areaName,
+      setAreaName: e => this.setState({ areaName: e.target.value }),
+      areaSites: s.locs.map(l => l.name.split(' — ')[0]).map(n => ({ name: n, on: s.areaSite === n, off: s.areaSite !== n, tap: () => this.setState({ areaSite: n }) })),
+      areaList: s.areas.map(a => ({
+        name: a.name, sub: a.site + ' · used by ' + s.defs.filter(d => d.dept === a.name).length + ' shift' + (s.defs.filter(d => d.dept === a.name).length === 1 ? '' : 's'),
+        edit: () => this.setState({ areaEdit: a.id, areaName: a.name, areaSite: a.site }),
+        remove: () => { this.setState(st => ({ areas: st.areas.filter(x => x.id !== a.id), areaEdit: st.areaEdit === a.id ? null : st.areaEdit })); this.say(a.name + ' deleted.'); }
+      })),
+      areasEmpty: s.areas.length === 0,
+      cancelArea: () => this.setState({ areaEdit: null, areaName: '' }),
+      saveArea: () => {
+        const name = s.areaName.trim();
+        if (!name) return this.say('Enter a location name.');
+        if (s.areas.some(a => a.name.toLowerCase() === name.toLowerCase() && a.id !== s.areaEdit)) return this.say('That location already exists.');
+        if (s.areaEdit) {
+          const old = s.areas.find(a => a.id === s.areaEdit);
+          this.setState(st => ({
+            areas: st.areas.map(a => a.id === st.areaEdit ? { ...a, name, site: st.areaSite } : a),
+            defs: st.defs.map(d => d.dept === old.name ? { ...d, dept: name } : d),
+            newDept: st.newDept === old.name ? name : st.newDept,
+            areaEdit: null, areaName: ''
+          }));
+          this.say('Location updated.');
+        } else {
+          this.setState(st => ({ areas: [...st.areas, { id: 'ar' + Date.now(), name, site: st.areaSite }], areaName: '' }));
+          this.say(name + ' added.');
+        }
+      },
+
+      locList: s.locs.map((l, i) => ({
+        name: l.name, sub: l.sub, radius: l.radius,
+        up: () => this.setState(st => ({ locs: st.locs.map((x, j) => j === i ? { ...x, radius: x.radius + 30 } : x) })),
+        down: () => this.setState(st => ({ locs: st.locs.map((x, j) => j === i ? { ...x, radius: Math.max(30, x.radius - 30) } : x) }))
+      })),
+
+      repTab: s.repTab, repHeadline: repData.headline, repDelta: repData.delta,
+      repTabs: ['Labour cost', 'Hours', 'Attendance'].map(t => ({ name: t, on: s.repTab === t, off: s.repTab !== t, tap: () => this.setState({ repTab: t }) })),
+      repIsCost: s.repTab === 'Labour cost', repIsHours: s.repTab === 'Hours', repIsAtt: s.repTab === 'Attendance',
+      repRows: [
+        { loc: 'Store 04', hours: '1,120', cost: '1,024,000.00' },
+        { loc: 'Store 11', hours: '680', cost: '612,300.00' },
+        { loc: 'Warehouse', hours: '240', cost: '206,000.00' }
+      ],
+      exportCsv: () => this.say('Report exported.'),
+
+      castTargets: ['Store 04', 'Store 11', 'Sat 22 shift', 'All staff'].map(t => ({ name: t, on: s.castTo === t, off: s.castTo !== t, tap: () => this.setState({ castTo: t }) })),
+      castAudience: audience, castSubject: s.castSubject, castBody: s.castBody,
+      setCastSubject: e => this.setState({ castSubject: e.target.value }),
+      setCastBody: e => this.setState({ castBody: e.target.value }),
+      receipt: s.receipt, noReceipt: !s.receipt,
+      toggleReceipt: () => this.setState(st => ({ receipt: !st.receipt })),
+      sendCast: () => {
+        if (!s.castSubject.trim()) return this.say('Enter a subject.');
+        this.setState(st => ({ casts: [{ id: 'c' + Date.now(), subject: st.castSubject, meta: 'Just now · 0 of ' + audience.split(' ')[0] + ' read' }, ...st.casts], castSubject: '', castBody: '' }));
+        this.push('Announcement — ' + s.castSubject, 'R. Fernando · just now');
+        this.say('Announcement sent to ' + s.castTo + '.');
+      },
+      sentCasts: s.casts,
+
+      moreLinks: [
+        { title: 'Open shift board', right: s.open.length + ' open', tap: () => this.go('mopen') },
+        { title: 'Staff management', right: s.staff.length + ' people', tap: () => this.go('mstaff') },
+        { title: 'Locations & departments', right: s.locs.length, tap: () => this.go('mloc') },
+        { title: 'Shift locations', right: s.areas.length, tap: () => this.go('mareas') },
+        { title: 'Reports', right: '›', tap: () => this.go('mreports') },
+        { title: 'Broadcast', right: '›', tap: () => this.go('mcast') },
+        { title: 'Notification settings', right: '›', tap: () => this.go('notif') },
+        { title: 'Help & support', right: '›', tap: () => this.go('help') }
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

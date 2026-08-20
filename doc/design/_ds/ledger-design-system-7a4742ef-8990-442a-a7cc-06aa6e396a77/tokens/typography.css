@@ -1,0 +1,18 @@
+:root{
+--font-display:Fraunces,Georgia,serif;
+--font-sans:Inter,system-ui,sans-serif;
+
+--text-xs:12px;   --leading-xs:16px;
+--text-sm:14px;   --leading-sm:20px;
+--text-base:16px; --leading-base:24px;
+--text-lg:20px;   --leading-lg:28px;
+--text-xl:24px;   --leading-xl:32px;
+--text-2xl:32px;  --leading-2xl:40px;
+--text-3xl:40px;  --leading-3xl:48px;
+
+--weight-body:400;
+--weight-label:500;
+--weight-heading:600;
+
+--tracking-header:0.04em;
+}
