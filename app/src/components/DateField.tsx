@@ -223,7 +223,7 @@ function TimeSteppers({ value, onChange }: { value: Date; onChange: (d: Date) =>
     <View style={styles.timeRow}>
       <Stepper label="Hour" value={pad(hour12)} onDecrease={() => setHour12(hour12 - 1)} onIncrease={() => setHour12(hour12 + 1)} />
       <Text style={styles.timeColon}>:</Text>
-      <Stepper label="Minute" value={pad(minute)} onDecrease={() => setMinute(minute - 5)} onIncrease={() => setMinute(minute + 5)} />
+      <Stepper label="Minute" value={pad(minute)} onDecrease={() => setMinute(minute - 1)} onIncrease={() => setMinute(minute + 1)} />
       <Pressable onPress={togglePeriod} style={styles.periodToggle} accessibilityRole="button" accessibilityLabel={isPM ? 'PM, tap for AM' : 'AM, tap for PM'}>
         <Text style={styles.periodLabel}>{isPM ? 'PM' : 'AM'}</Text>
       </Pressable>

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { ListShiftsQuerySchema, CreateShiftSchema, UpdateShiftSchema } from '../schemas/shifts.schemas.js';
-import { listShifts, getShiftDetail, createShift, updateShift, cancelShift } from '../services/shifts.service.js';
+import { listShifts, getShiftDetail, createShift, updateShift, cancelShift, deleteShift } from '../services/shifts.service.js';
 import { requireManager } from '../middleware/require-role.middleware.js';
 import '../types.js';
 
@@ -51,6 +51,28 @@ export async function shiftsRoutes(app: FastifyInstance): Promise<void> {
       return;
     }
     await reply.send(shift);
+  });
+
+  // Deleting removes the shift and cascades to its staffing rows. Kept separate from
+  // /cancel: cancel is the reversible, history-preserving path, this one is not.
+  app.delete('/v1/shifts/:id', { preHandler: requireManager }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const result = await deleteShift(request.caller!, id);
+    if (!result.ok && result.reason === 'not_found') {
+      await reply.code(404).send({ error: { code: 'NOT_FOUND', message: 'Shift not found' } });
+      return;
+    }
+    if (!result.ok) {
+      await reply.code(409).send({
+        error: {
+          code: 'SHIFT_HAS_TIME_ENTRIES',
+          message: "This shift already has clock-in records, so it can't be deleted. Cancel it instead.",
+          details: { timeEntryCount: result.timeEntryCount },
+        },
+      });
+      return;
+    }
+    await reply.code(204).send();
   });
 
   app.post('/v1/shifts/:id/cancel', { preHandler: requireManager }, async (request, reply) => {

@@ -4,6 +4,7 @@ import { Switch } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface Profile {
   notification_prefs: Record<string, boolean>;
@@ -20,7 +21,8 @@ const EVENT_TYPES: Array<{ key: string; label: string }> = [
 
 export default function NotificationPreferencesScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
-  const { data: profile } = useQuery({ queryKey: ['profile', 'mine'], queryFn: () => apiRequest<Profile>('/profile') });
+  const { data: profile, refetch } = useQuery({ queryKey: ['profile', 'mine'], queryFn: () => apiRequest<Profile>('/profile') });
+  const refreshControl = usePullToRefresh({ refetch });
   const [prefs, setPrefs] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function NotificationPreferencesScreen(): React.JSX.Element {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView refreshControl={refreshControl} contentContainerStyle={styles.container}>
       <Text style={styles.title}>Notifications</Text>
       {EVENT_TYPES.map(({ key, label }) => (
         <View key={key} style={styles.row}>

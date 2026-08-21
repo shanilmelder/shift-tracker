@@ -58,6 +58,30 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   app.get('/health', async () => ({ status: 'ok' }));
 
+  // Must be set BEFORE any `app.register(...)` below. Each registered plugin gets its own
+  // encapsulated context that captures the parent's error handler at the moment it boots, and
+  // `await app.register(...)` boots it immediately — so a handler installed afterwards would
+  // apply to root-level routes only, leaving every feature route serving Fastify's default
+  // `{statusCode, error, message}` body instead of the contract's `{error: {code, message}}`.
+  // The app's ApiError reads `body.error.message`, so that mismatch surfaces as a blank error.
+  app.setErrorHandler((error, _request, reply) => {
+    app.log.error(error);
+    // Both spellings matter: Fastify's own errors use `statusCode`, while Supabase's
+    // AuthApiError (thrown straight through by auth.service.ts) carries `status` instead.
+    // Fastify's default handler honours both; missing `status` here collapsed every
+    // "Invalid login credentials" into an opaque 500 "Something went wrong".
+    const raw = (error as { statusCode?: unknown; status?: unknown });
+    const candidate = typeof raw.statusCode === 'number' ? raw.statusCode : raw.status;
+    const status = typeof candidate === 'number' && candidate >= 400 && candidate <= 599 ? candidate : 500;
+    reply.code(status).send({
+      error: {
+        code: status === 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR',
+        message: status === 500 ? 'Something went wrong' : error.message,
+      },
+    });
+  });
+
+
   // Feature-area routes are registered here as they are implemented (Phase 3 onward);
   // each route file is self-contained and only needs `app.register(...)`.
   await app.register(authRoutes);
@@ -84,17 +108,6 @@ export async function buildApp(): Promise<FastifyInstance> {
   // it. staffing.service.ts exposes a registration hook rather than importing
   // time-off.service.ts directly (Phase 5 predates Phase 8) — wired here, once, at boot.
   registerTimeOffConflictCheck(hasApprovedTimeOff);
-
-  app.setErrorHandler((error, _request, reply) => {
-    app.log.error(error);
-    const status = 'statusCode' in error && typeof error.statusCode === 'number' ? error.statusCode : 500;
-    reply.code(status).send({
-      error: {
-        code: status === 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR',
-        message: status === 500 ? 'Something went wrong' : error.message,
-      },
-    });
-  });
 
   return app;
 }

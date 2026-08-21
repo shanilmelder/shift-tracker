@@ -38,13 +38,26 @@ export async function shiftTemplatesRoutes(app: FastifyInstance): Promise<void> 
     await reply.code(201).send(template);
   });
 
+  // Deleting a template also deletes the dated shifts built from it, and their staffing.
   app.delete('/v1/shift-templates/:id', { preHandler: requireManager }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    try {
-      await removeShiftTemplate(request.caller!, id);
-      await reply.code(204).send();
-    } catch (err) {
-      await reply.code(404).send({ error: { code: 'NOT_FOUND', message: (err as Error).message } });
+    const result = await removeShiftTemplate(request.caller!, id);
+
+    if (!result.ok && result.reason === 'not_found') {
+      await reply.code(404).send({ error: { code: 'NOT_FOUND', message: 'Shift template not found at your location' } });
+      return;
     }
+    if (!result.ok) {
+      await reply.code(409).send({
+        error: {
+          code: 'SHIFT_HAS_TIME_ENTRIES',
+          message:
+            "Some shifts from this template already have clock-in records, so it can't be deleted. Cancel those shifts instead.",
+          details: { timeEntryCount: result.timeEntryCount },
+        },
+      });
+      return;
+    }
+    await reply.code(204).send();
   });
 }

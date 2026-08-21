@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, Button, TextField, DateField, ListRow, EmptyState } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface AvailabilityRow {
   id: string;
@@ -18,7 +19,8 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** FR-016: recurring weekly availability + specific blocked-out dates, replaced as a whole set. */
 export default function AvailabilityScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
-  const { data: rows } = useQuery({ queryKey: ['availability', 'mine'], queryFn: () => apiRequest<AvailabilityRow[]>('/availability', { query: { mine: true } }) });
+  const { data: rows, refetch } = useQuery({ queryKey: ['availability', 'mine'], queryFn: () => apiRequest<AvailabilityRow[]>('/availability', { query: { mine: true } }) });
+  const refreshControl = usePullToRefresh({ refetch });
   const [blockedDate, setBlockedDate] = useState('');
   const [recurringDay, setRecurringDay] = useState('1');
   const [recurringStart, setRecurringStart] = useState('09:00');
@@ -70,9 +72,10 @@ export default function AvailabilityScreen(): React.JSX.Element {
       </View>
 
       {!rows || rows.length === 0 ? (
-        <EmptyState title="No availability set" />
+        <EmptyState refreshControl={refreshControl} title="No availability set" />
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={rows}
           keyExtractor={(row) => row.id}
           renderItem={({ item }) => (

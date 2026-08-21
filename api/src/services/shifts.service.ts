@@ -4,10 +4,13 @@ import {
   findShiftById,
   insertShift,
   updateShiftFields,
+  deleteShiftById,
+  listShiftIdsForTemplate,
   type ShiftFilters,
   type ShiftRow,
 } from '../data/shifts.repo.js';
 import { listAssignmentsForShift, isEmployeeAssignedToShift } from '../data/shift-assignments.repo.js';
+import { countTimeEntriesForShifts } from '../data/time-entries.repo.js';
 import { isShiftLeaderOf } from '../middleware/require-shift-leader.middleware.js';
 import { sendPushToProfiles } from './notifications.service.js';
 import { publishToProfiles } from './realtime.service.js';
@@ -49,7 +52,7 @@ export async function getShiftDetail(caller: CallerProfile, shiftId: string): Pr
 /** FR-026 (create step): name + start/end time only, no staffing — the shift starts as `draft`. */
 export async function createShift(
   caller: CallerProfile,
-  input: { name: string; startTime: string; endTime: string; shiftAreaId?: string; position?: string; notes?: string },
+  input: { name: string; startTime: string; endTime: string; shiftAreaId?: string; position?: string; notes?: string; templateId?: string },
 ): Promise<ShiftRow> {
   return insertShift({ ...input, locationId: caller.locationId, createdBy: caller.id });
 }
@@ -82,6 +85,60 @@ export async function updateShift(
   }
 
   return updated;
+}
+
+export type DeleteShiftResult =
+  | { ok: true }
+  | { ok: false; reason: 'not_found' }
+  | { ok: false; reason: 'has_time_entries'; timeEntryCount: number };
+
+/**
+ * Deletes a shift and, by database cascade, its staffing assignments, open-shift claims and
+ * swap requests. Staffed employees are notified first — the assignment rows naming them are
+ * gone the moment the delete lands, so the recipient list has to be read before, not after.
+ *
+ * Refuses outright when the shift has any time entries: that is payroll history, and
+ * `time_entries.shift_id` deliberately does not cascade (0021 migration). Cancelling the
+ * shift is the right move there, which is why that route still exists alongside this one.
+ */
+export async function deleteShift(caller: CallerProfile, shiftId: string): Promise<DeleteShiftResult> {
+  const shift = await findShiftById(shiftId);
+  if (!shift || shift.location_id !== caller.locationId) return { ok: false, reason: 'not_found' };
+
+  const timeEntryCount = await countTimeEntriesForShifts([shiftId]);
+  if (timeEntryCount > 0) return { ok: false, reason: 'has_time_entries', timeEntryCount };
+
+  const assignments = await listAssignmentsForShift(shiftId);
+  const employeeIds = assignments.map((a) => a.employee_id);
+
+  await deleteShiftById(shiftId);
+
+  await sendPushToProfiles(employeeIds, 'Shift removed', `"${shift.name}" has been deleted from the schedule.`, { shiftId });
+  publishToProfiles(employeeIds, 'shift.deleted', { shiftId });
+  return { ok: true };
+}
+
+/**
+ * What deleting `templateId` would take with it — the numbers the Build screen shows in its
+ * confirmation, and the same check `removeShiftTemplate` enforces server-side.
+ */
+export async function templateDeletionImpact(templateId: string): Promise<{ shiftIds: string[]; timeEntryCount: number }> {
+  const shiftIds = await listShiftIdsForTemplate(templateId);
+  const timeEntryCount = await countTimeEntriesForShifts(shiftIds);
+  return { shiftIds, timeEntryCount };
+}
+
+/** Notifies everyone staffed on `shiftIds` that those shifts are going away. Call before deleting. */
+export async function notifyShiftsRemoved(shiftIds: string[], templateName: string): Promise<void> {
+  const employeeIds = new Set<string>();
+  for (const shiftId of shiftIds) {
+    const assignments = await listAssignmentsForShift(shiftId);
+    for (const a of assignments) employeeIds.add(a.employee_id);
+  }
+  if (employeeIds.size === 0) return;
+  const ids = Array.from(employeeIds);
+  await sendPushToProfiles(ids, 'Shifts removed', `"${templateName}" and its scheduled dates have been deleted.`, {});
+  publishToProfiles(ids, 'shift.deleted', { shiftIds });
 }
 
 export async function cancelShift(caller: CallerProfile, shiftId: string): Promise<ShiftRow | null> {

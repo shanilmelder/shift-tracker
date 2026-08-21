@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { theme, ListRow } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface HoursRow {
   employeeId: string;
@@ -12,7 +13,8 @@ interface HoursRow {
 }
 
 export default function HoursByEmployeeReport(): React.JSX.Element {
-  const { data, isLoading } = useQuery({ queryKey: ['reports', 'hours-by-employee'], queryFn: () => apiRequest<HoursRow[]>('/reports/hours-by-employee') });
+  const { data, isLoading, refetch } = useQuery({ queryKey: ['reports', 'hours-by-employee'], queryFn: () => apiRequest<HoursRow[]>('/reports/hours-by-employee') });
+  const refreshControl = usePullToRefresh({ refetch });
 
   return (
     <View style={styles.container}>
@@ -21,6 +23,7 @@ export default function HoursByEmployeeReport(): React.JSX.Element {
         <Text style={styles.status}>Loading…</Text>
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={data ?? []}
           keyExtractor={(row) => row.employeeId}
           renderItem={({ item }) => (

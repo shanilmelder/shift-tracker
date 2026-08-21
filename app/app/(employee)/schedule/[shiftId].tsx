@@ -6,19 +6,21 @@ import { theme, Card, Badge, EmptyState, Button, ListRow } from '../../../src/co
 import { useShiftDetail } from '../../../src/queries/shifts.queries';
 import { listEligibleCoworkers, createSwapRequest } from '../../../src/api/swap-requests.api';
 import type { ShiftAssignment } from '../../../src/types/api/shifts';
+import { usePullToRefresh } from '../../../src/hooks';
 
 /** Shift detail (FR-015): time, location/area, role, and notes. */
 export default function ShiftDetailScreen(): React.JSX.Element {
   const { shiftId } = useLocalSearchParams<{ shiftId: string }>();
-  const { data: shift, isLoading, isError } = useShiftDetail(shiftId);
+  const { data: shift, isLoading, isError, refetch: refetchShift } = useShiftDetail(shiftId);
   const [showSwapPicker, setShowSwapPicker] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
 
-  const { data: eligibleCoworkers } = useQuery({
+  const { data: eligibleCoworkers, refetch: refetchCoworkers } = useQuery({
     queryKey: ['eligible-coworkers', shiftId],
     queryFn: () => listEligibleCoworkers(shiftId),
     enabled: showSwapPicker,
   });
+  const refreshControl = usePullToRefresh({ refetch: refetchShift }, { refetch: refetchCoworkers });
 
   const sendSwapMutation = useMutation({
     mutationFn: (targetEmployeeId: string) => createSwapRequest(shiftId, targetEmployeeId),
@@ -36,13 +38,13 @@ export default function ShiftDetailScreen(): React.JSX.Element {
   if (isError || !shift) {
     return (
       <View style={styles.container}>
-        <EmptyState title="Shift unavailable" message="This shift may have been removed, or you may no longer be staffed on it." />
+        <EmptyState refreshControl={refreshControl} title="Shift unavailable" message="This shift may have been removed, or you may no longer be staffed on it." />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView refreshControl={refreshControl} style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{shift.name}</Text>
       <Badge label={shift.status} tone={shift.status === 'cancelled' ? 'danger' : 'neutral'} />
 

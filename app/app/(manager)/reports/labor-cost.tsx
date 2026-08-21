@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, ScrollView, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { theme, TextField, Card } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface LaborCostResult {
   totalCost: number;
@@ -12,13 +13,14 @@ interface LaborCostResult {
 
 export default function LaborCostReport(): React.JSX.Element {
   const [budget, setBudget] = useState('0');
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['reports', 'labor-cost', budget],
     queryFn: () => apiRequest<LaborCostResult>('/reports/labor-cost', { query: { budget } }),
   });
+  const refreshControl = usePullToRefresh({ refetch });
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} refreshControl={refreshControl}>
       <Text style={styles.title}>Labor cost vs. budget</Text>
       <TextField label="Budget" keyboardType="numeric" value={budget} onChangeText={setBudget} />
       {isLoading || !data ? (
@@ -31,12 +33,13 @@ export default function LaborCostReport(): React.JSX.Element {
           </Text>
         </Card>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background, padding: theme.spacing.md },
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: theme.spacing.md },
   title: { ...theme.typography.title, color: theme.colors.textPrimary, marginBottom: theme.spacing.md },
   status: { ...theme.typography.body, color: theme.colors.textSecondary },
   value: { ...theme.typography.title, color: theme.colors.textPrimary },

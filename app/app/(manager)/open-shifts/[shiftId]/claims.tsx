@@ -4,6 +4,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../../src/components';
 import * as openShiftsApi from '../../../../src/api/open-shifts.api';
+import { usePullToRefresh } from '../../../../src/hooks';
 
 /**
  * FR-046: shows ALL claimants with no ordering that implies priority — the manager may
@@ -13,10 +14,11 @@ export default function OpenShiftClaimsScreen(): React.JSX.Element {
   const { shiftId } = useLocalSearchParams<{ shiftId: string }>();
   const queryClient = useQueryClient();
 
-  const { data: claims, isLoading } = useQuery({
+  const { data: claims, isLoading, refetch } = useQuery({
     queryKey: ['open-shift-claims', shiftId],
     queryFn: () => openShiftsApi.listShiftClaims(shiftId),
   });
+  const refreshControl = usePullToRefresh({ refetch });
 
   const confirmMutation = useMutation({
     mutationFn: (claimId: string) => openShiftsApi.confirmClaim(shiftId, claimId),
@@ -34,9 +36,10 @@ export default function OpenShiftClaimsScreen(): React.JSX.Element {
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
       ) : !claims || claims.length === 0 ? (
-        <EmptyState title="No claims yet" />
+        <EmptyState refreshControl={refreshControl} title="No claims yet" />
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={claims}
           keyExtractor={(claim) => claim.id}
           renderItem={({ item: claim }) => (

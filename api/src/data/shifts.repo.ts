@@ -10,6 +10,9 @@ export interface ShiftRow {
   position: string | null;
   notes: string | null;
   status: 'draft' | 'scheduled' | 'open' | 'completed' | 'cancelled';
+  /** The template this shift was generated from, if any. Deleting that template deletes this
+   * row too (0021 migration) — shifts created outside the Build flow have null here. */
+  template_id: string | null;
   created_by: string;
   created_at: string;
 }
@@ -69,6 +72,7 @@ export async function insertShift(input: {
   shiftAreaId?: string;
   position?: string;
   notes?: string;
+  templateId?: string;
   createdBy: string;
 }): Promise<ShiftRow> {
   const { data, error } = await supabase
@@ -81,6 +85,7 @@ export async function insertShift(input: {
       shift_area_id: input.shiftAreaId ?? null,
       position: input.position ?? null,
       notes: input.notes ?? null,
+      template_id: input.templateId ?? null,
       status: 'draft',
       created_by: input.createdBy,
     })
@@ -90,6 +95,20 @@ export async function insertShift(input: {
   return data as ShiftRow;
 }
 
+/**
+ * Hard-deletes a shift. `shift_assignments.shift_id` is declared `on delete cascade` (see the
+ * 0005 migration), so every staffing row for this shift goes with it in the same statement —
+ * there is deliberately no separate assignment cleanup here that could half-succeed.
+ *
+ * Distinct from `cancelShift`, which keeps the row and flips its status: cancelling preserves
+ * the history a timesheet or swap may still reference, deleting is for a shift created in
+ * error that should leave no trace.
+ */
+export async function deleteShiftById(id: string): Promise<void> {
+  const { error } = await supabase.from('shifts').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export async function updateShiftFields(
   id: string,
   patch: Partial<Pick<ShiftRow, 'name' | 'start_time' | 'end_time' | 'shift_area_id' | 'position' | 'notes' | 'status'>>,
@@ -97,4 +116,27 @@ export async function updateShiftFields(
   const { data, error } = await supabase.from('shifts').update(patch).eq('id', id).select().single();
   if (error || !data) throw error ?? new Error('Failed to update shift');
   return data as ShiftRow;
+}
+
+/** Ids of every shift generated from `templateId` — what a template delete would take with it. */
+export async function listShiftIdsForTemplate(templateId: string): Promise<string[]> {
+  const { data, error } = await supabase.from('shifts').select('id').eq('template_id', templateId);
+  if (error) throw error;
+  return (data ?? []).map((row) => row.id as string);
+}
+
+/** Per-template shift counts for a location, as one query rather than one per template. */
+export async function countShiftsByTemplate(locationId: string): Promise<Map<string, number>> {
+  const { data, error } = await supabase
+    .from('shifts')
+    .select('template_id')
+    .eq('location_id', locationId)
+    .not('template_id', 'is', null);
+  if (error) throw error;
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    const id = row.template_id as string;
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  return counts;
 }

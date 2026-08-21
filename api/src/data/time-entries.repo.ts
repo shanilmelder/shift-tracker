@@ -102,3 +102,19 @@ export async function listFlaggedForLocation(locationId: string): Promise<TimeEn
   if (error) throw error;
   return (data ?? []) as TimeEntryRow[];
 }
+
+/**
+ * How many time entries exist across the given shifts. Used as a delete guard: `time_entries`
+ * intentionally does not cascade from `shifts` (0021 migration), so deleting a shift with
+ * clock-in history would fail at the database with a foreign-key violation. Checking first
+ * lets the API refuse with an explanation instead of surfacing a 500.
+ */
+export async function countTimeEntriesForShifts(shiftIds: string[]): Promise<number> {
+  if (shiftIds.length === 0) return 0;
+  const { count, error } = await supabase
+    .from('time_entries')
+    .select('id', { count: 'exact', head: true })
+    .in('shift_id', shiftIds);
+  if (error) throw error;
+  return count ?? 0;
+}

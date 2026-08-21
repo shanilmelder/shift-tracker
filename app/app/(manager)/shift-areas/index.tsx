@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme, Button, TextField, ListRow, EmptyState, ConfirmDialog } from '../../../src/components';
+import { theme, Button, TextField, ListRow, EmptyState, ConfirmDialog, SwipeToDelete } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface ShiftArea {
   id: string;
@@ -19,7 +20,8 @@ export default function ShiftAreasScreen(): React.JSX.Element {
   const [newName, setNewName] = useState('');
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  const { data: areas, isLoading } = useQuery({ queryKey: ['shift-areas'], queryFn: () => apiRequest<ShiftArea[]>('/shift-areas') });
+  const { data: areas, isLoading, refetch } = useQuery({ queryKey: ['shift-areas'], queryFn: () => apiRequest<ShiftArea[]>('/shift-areas') });
+  const refreshControl = usePullToRefresh({ refetch });
 
   const createMutation = useMutation({
     mutationFn: (name: string) => apiRequest<ShiftArea>('/shift-areas', { method: 'POST', body: { name } }),
@@ -50,13 +52,16 @@ export default function ShiftAreasScreen(): React.JSX.Element {
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
       ) : !areas || areas.length === 0 ? (
-        <EmptyState title="No areas yet" />
+        <EmptyState refreshControl={refreshControl} title="No areas yet" />
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={areas}
           keyExtractor={(area) => area.id}
           renderItem={({ item }) => (
-            <ListRow title={item.name} right={<Button label="Remove" variant="danger" onPress={() => setPendingDeleteId(item.id)} />} />
+            <SwipeToDelete label="Remove" onDelete={() => setPendingDeleteId(item.id)} accessibilityLabel={item.name}>
+              <ListRow title={item.name} />
+            </SwipeToDelete>
           )}
         />
       )}
@@ -67,7 +72,10 @@ export default function ShiftAreasScreen(): React.JSX.Element {
         message="Shifts already tagged with this area keep it until reassigned; removal is blocked while any shift still uses it."
         confirmLabel="Remove"
         destructive
-        onConfirm={() => pendingDeleteId && deleteMutation.mutate(pendingDeleteId)}
+        onConfirm={() => {
+          if (pendingDeleteId) deleteMutation.mutate(pendingDeleteId);
+          setPendingDeleteId(null);
+        }}
         onCancel={() => setPendingDeleteId(null)}
       />
     </View>

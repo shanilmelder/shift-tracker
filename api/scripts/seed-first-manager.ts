@@ -73,23 +73,16 @@ async function main(): Promise<void> {
     .single();
   if (locationError || !location) throw locationError ?? new Error('Failed to create location');
 
+  // The profile row is created by the on_auth_user_created trigger (0022 migration) from this
+  // app_metadata, in the same transaction as the auth user — hence no separate insert and no
+  // compensating delete. created_by is left unset, NULL only for this one pre-provisioned
+  // account (FR-003).
   const { data: authResult, error: authError } = await supabase.auth.admin.createUser({
     email,
     email_confirm: false,
+    app_metadata: { name, role: 'manager', location_id: location.id },
   });
   if (authError || !authResult?.user) throw authError ?? new Error('Failed to create auth user');
-
-  const { error: profileError } = await supabase.from('profiles').insert({
-    id: authResult.user.id,
-    name,
-    role: 'manager',
-    location_id: location.id,
-    created_by: null, // NULL only for this one pre-provisioned account (FR-003)
-  });
-  if (profileError) {
-    await supabase.auth.admin.deleteUser(authResult.user.id);
-    throw profileError;
-  }
 
   await supabase.auth.admin.inviteUserByEmail(email, { redirectTo: RESET_PASSWORD_DEEP_LINK });
 

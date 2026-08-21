@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { theme, Button, TextField, DateField, ListRow, Badge, EmptyState } from '../../../src/components';
 import * as timeOffApi from '../../../src/api/time-off-requests.api';
 import { ApiError } from '../../../src/types/api/common';
+import { usePullToRefresh } from '../../../src/hooks';
 
 const TimeOffSchema = z.object({
   startDate: z.string().min(1, 'Start date is required (YYYY-MM-DD)'),
@@ -19,7 +20,8 @@ type TimeOffForm = z.infer<typeof TimeOffSchema>;
 export default function TimeOffScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const { data: requests } = useQuery({ queryKey: ['time-off-requests', 'mine'], queryFn: timeOffApi.listMyTimeOffRequests });
+  const { data: requests, refetch } = useQuery({ queryKey: ['time-off-requests', 'mine'], queryFn: timeOffApi.listMyTimeOffRequests });
+  const refreshControl = usePullToRefresh({ refetch });
 
   const {
     control,
@@ -40,7 +42,7 @@ export default function TimeOffScreen(): React.JSX.Element {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView refreshControl={refreshControl} contentContainerStyle={styles.container}>
       <Text style={styles.title}>Request time off</Text>
 
       <Controller

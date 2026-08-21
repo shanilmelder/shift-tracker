@@ -10,6 +10,7 @@ export interface Shift {
   position: string | null;
   notes: string | null;
   status: ShiftStatus;
+  template_id: string | null;
   created_by: string;
   created_at: string;
 }

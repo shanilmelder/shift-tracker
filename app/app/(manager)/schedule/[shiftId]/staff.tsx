@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, Button, ListRow, Badge, EmptyState } from '../../../../src/components';
 import { apiRequest } from '../../../../src/api/client';
 import { listAssignments, replaceStaffing, type StaffingConflictDetail } from '../../../../src/api/shift-assignments.api';
 import { ApiError } from '../../../../src/types/api/common';
+import { usePullToRefresh } from '../../../../src/hooks';
 
 interface StaffMemberSummary {
   id: string;
@@ -22,21 +23,23 @@ interface StaffMemberSummary {
  */
 export default function StaffShiftScreen(): React.JSX.Element {
   const { shiftId } = useLocalSearchParams<{ shiftId: string }>();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Map<string, boolean>>(new Map());
   const [conflicts, setConflicts] = useState<StaffingConflictDetail[] | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { data: staff } = useQuery({
+  const { data: staff, refetch: refetchStaff } = useQuery({
     queryKey: ['admin-users', 'list'],
     queryFn: () => apiRequest<StaffMemberSummary[]>('/admin/users'),
   });
 
-  const { data: assignments, isLoading } = useQuery({
+  const { data: assignments, isLoading, refetch: refetchAssignments } = useQuery({
     queryKey: ['shift-assignments', shiftId],
     queryFn: () => listAssignments(shiftId),
     enabled: Boolean(shiftId),
   });
+  const refreshControl = usePullToRefresh({ refetch: refetchStaff }, { refetch: refetchAssignments });
 
   const initialized = useMemo(() => {
     if (!assignments) return null;
@@ -58,6 +61,12 @@ export default function StaffShiftScreen(): React.JSX.Element {
       setSubmitError(null);
       void queryClient.invalidateQueries({ queryKey: ['shift-assignments', shiftId] });
       void queryClient.invalidateQueries({ queryKey: ['shifts', 'detail', shiftId] });
+      void queryClient.invalidateQueries({ queryKey: ['shifts', 'list'] });
+      // Staffing is the last step of the build flow, so a successful save returns to Build
+      // rather than leaving the manager on a screen they're finished with. `replace`, not
+      // `push`/`back`: this screen is reachable both from the create flow and from the
+      // existing-shifts list, and Build is the right destination either way.
+      router.replace('/(manager)/schedule');
     },
     onError: (err) => {
       if (err instanceof ApiError && err.code === 'STAFFING_CONFLICT') {
@@ -108,9 +117,10 @@ export default function StaffShiftScreen(): React.JSX.Element {
       {submitError ? <Text style={styles.conflictTitle}>{submitError}</Text> : null}
 
       {!staff || staff.length === 0 ? (
-        <EmptyState title="No staff yet" message="Add staff members before staffing a shift." />
+        <EmptyState refreshControl={refreshControl} title="No staff yet" message="Add staff members before staffing a shift." />
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={staff}
           keyExtractor={(member) => member.id}
           renderItem={({ item }) => {
