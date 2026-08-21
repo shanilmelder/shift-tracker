@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { theme, ListRow, EmptyState } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface TeamMember {
   id: string;
@@ -12,7 +13,8 @@ interface TeamMember {
 
 /** FR-021: coworker directory, scoped to the caller's own location by the API. */
 export default function TeamScreen(): React.JSX.Element {
-  const { data: team, isLoading } = useQuery({ queryKey: ['team'], queryFn: () => apiRequest<TeamMember[]>('/team') });
+  const { data: team, isLoading, refetch } = useQuery({ queryKey: ['team'], queryFn: () => apiRequest<TeamMember[]>('/team') });
+  const refreshControl = usePullToRefresh({ refetch });
 
   return (
     <View style={styles.container}>
@@ -20,9 +22,9 @@ export default function TeamScreen(): React.JSX.Element {
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
       ) : !team || team.length === 0 ? (
-        <EmptyState title="No coworkers found" />
+        <EmptyState refreshControl={refreshControl} title="No coworkers found" />
       ) : (
-        <FlatList data={team} keyExtractor={(m) => m.id} renderItem={({ item }) => <ListRow title={item.name} subtitle={item.job_role ?? undefined} />} />
+        <FlatList refreshControl={refreshControl} data={team} keyExtractor={(m) => m.id} renderItem={({ item }) => <ListRow title={item.name} subtitle={item.job_role ?? undefined} />} />
       )}
     </View>
   );

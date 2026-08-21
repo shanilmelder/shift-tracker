@@ -3,14 +3,16 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../src/components';
 import * as timeOffApi from '../../../src/api/time-off-requests.api';
+import { usePullToRefresh } from '../../../src/hooks';
 
 /** FR-030: manager reviews time-off requests, approve/deny (optional comment: see Phase 7's tracked polish note — same gap applies here). */
 export default function TimeOffApprovalsScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
-  const { data: requests, isLoading } = useQuery({
+  const { data: requests, isLoading, refetch } = useQuery({
     queryKey: ['time-off-requests', 'pending-approval'],
     queryFn: () => timeOffApi.listPendingTimeOffRequests().then((all) => all.filter((r) => r.status === 'pending')),
   });
+  const refreshControl = usePullToRefresh({ refetch });
 
   const decideMutation = useMutation({
     mutationFn: ({ id, approve }: { id: string; approve: boolean }) => timeOffApi.decideTimeOffRequest(id, approve),
@@ -24,9 +26,10 @@ export default function TimeOffApprovalsScreen(): React.JSX.Element {
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
       ) : !requests || requests.length === 0 ? (
-        <EmptyState title="Nothing pending" />
+        <EmptyState refreshControl={refreshControl} title="Nothing pending" />
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={requests}
           keyExtractor={(r) => r.id}
           renderItem={({ item }) => (

@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { theme, ListRow, Card } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface OvertimeResult {
   totalOvertimeHours: number;
@@ -10,7 +11,8 @@ interface OvertimeResult {
 }
 
 export default function OvertimeReport(): React.JSX.Element {
-  const { data, isLoading } = useQuery({ queryKey: ['reports', 'overtime'], queryFn: () => apiRequest<OvertimeResult>('/reports/overtime') });
+  const { data, isLoading, refetch } = useQuery({ queryKey: ['reports', 'overtime'], queryFn: () => apiRequest<OvertimeResult>('/reports/overtime') });
+  const refreshControl = usePullToRefresh({ refetch });
 
   return (
     <View style={styles.container}>
@@ -23,6 +25,7 @@ export default function OvertimeReport(): React.JSX.Element {
             <Text style={styles.total}>{data.totalOvertimeHours.toFixed(1)}h total overtime</Text>
           </Card>
           <FlatList
+            refreshControl={refreshControl}
             data={data.perEmployee}
             keyExtractor={(row) => row.employeeId}
             renderItem={({ item }) => <ListRow title={item.employeeName} subtitle={`${item.totalOvertimeHours.toFixed(1)}h overtime`} />}

@@ -23,6 +23,7 @@ export type RealtimeEventName =
   | 'shift.assigned'
   | 'shift.changed'
   | 'shift.cancelled'
+  | 'shift.deleted'
   | 'swap.status_changed'
   | 'time_off.status_changed'
   | 'open_shift.posted'

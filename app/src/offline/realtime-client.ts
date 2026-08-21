@@ -8,6 +8,7 @@ type RealtimeEventName =
   | 'shift.assigned'
   | 'shift.changed'
   | 'shift.cancelled'
+  | 'shift.deleted'
   | 'swap.status_changed'
   | 'time_off.status_changed'
   | 'open_shift.posted'
@@ -41,6 +42,7 @@ export function connectRealtimeStream(accessToken: string, queryClient: QueryCli
     if (data) invalidate(['shifts', 'detail', data.shiftId]);
   });
   es.addEventListener('shift.cancelled', () => invalidate(['shifts', 'list']));
+  es.addEventListener('shift.deleted', () => invalidate(['shifts', 'list']));
   es.addEventListener('swap.status_changed', () => invalidate(['swap-requests', 'mine']));
   es.addEventListener('time_off.status_changed', () => invalidate(['time-off-requests', 'mine']));
   es.addEventListener('open_shift.posted', () => invalidate(['open-shifts']));

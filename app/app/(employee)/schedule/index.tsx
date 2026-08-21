@@ -5,6 +5,7 @@ import { theme, Button, ListRow, EmptyState, Badge } from '../../../src/componen
 import { useShiftsList } from '../../../src/queries/shifts.queries';
 import { rangeForView, groupByDay, type CalendarView } from '../../../src/lib/date-ranges';
 import type { Shift } from '../../../src/types/api/shifts';
+import { usePullToRefresh } from '../../../src/hooks';
 
 const VIEWS: CalendarView[] = ['day', 'week', 'month'];
 
@@ -20,7 +21,8 @@ export default function EmployeeScheduleScreen(): React.JSX.Element {
   const [anchor] = useState(() => new Date());
 
   const { from, to } = useMemo(() => rangeForView(view, anchor), [view, anchor]);
-  const { data: shifts, isLoading, isError } = useShiftsList({ from: from.toISOString(), to: to.toISOString() });
+  const { data: shifts, isLoading, isError, refetch } = useShiftsList({ from: from.toISOString(), to: to.toISOString() });
+  const refreshControl = usePullToRefresh({ refetch });
 
   const grouped = useMemo(() => groupByDay<Shift>(shifts ?? []), [shifts]);
 
@@ -45,9 +47,10 @@ export default function EmployeeScheduleScreen(): React.JSX.Element {
           Couldn't refresh your schedule — showing the last saved version, if any.
         </Text>
       ) : grouped.length === 0 ? (
-        <EmptyState title="No shifts in this range" message="You have no shifts scheduled for this period." />
+        <EmptyState refreshControl={refreshControl} title="No shifts in this range" message="You have no shifts scheduled for this period." />
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={grouped}
           keyExtractor={(group) => group.dateKey}
           renderItem={({ item: group }) => (

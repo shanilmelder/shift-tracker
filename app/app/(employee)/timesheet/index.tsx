@@ -1,18 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { theme, Card } from '../../../src/components';
 import { getMyTimesheet } from '../../../src/api/time-entries.api';
+import { usePullToRefresh } from '../../../src/hooks';
 
 /** FR-020: hours worked per pay period, split into regular vs. overtime (fixed 8h/day threshold). */
 export default function TimesheetScreen(): React.JSX.Element {
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['timesheet', 'mine'],
     queryFn: () => getMyTimesheet(),
   });
+  const refreshControl = usePullToRefresh({ refetch });
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} refreshControl={refreshControl}>
       <Text style={styles.title}>Timesheet</Text>
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
@@ -24,7 +26,7 @@ export default function TimesheetScreen(): React.JSX.Element {
           <Row label="Overtime hours" value={data.totalOvertimeHours.toFixed(2)} />
         </Card>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -41,6 +43,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  // Padding lives on the content, not the ScrollView itself, so the pull-to-refresh spinner
+  // sits against the screen edge rather than being inset by it.
+  content: {
     padding: theme.spacing.md,
   },
   title: {

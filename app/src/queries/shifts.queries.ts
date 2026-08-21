@@ -48,3 +48,17 @@ export function useUpdateShift(shiftId: string) {
     },
   });
 }
+
+export function useDeleteShift() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: shiftsApi.deleteShift,
+    onSuccess: (_result, shiftId) => {
+      // The detail entry is removed rather than invalidated: the shift no longer exists, so a
+      // refetch would only 404. The list is invalidated so the row disappears.
+      queryClient.removeQueries({ queryKey: shiftKeys.detail(shiftId) });
+      void queryClient.invalidateQueries({ queryKey: ['shifts', 'list'] });
+      void queryClient.invalidateQueries({ queryKey: ['shift-assignments', shiftId] });
+    },
+  });
+}

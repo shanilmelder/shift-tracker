@@ -26,6 +26,9 @@ export interface CreateShiftInput {
   shiftAreaId?: string;
   position?: string;
   notes?: string;
+  /** Links the new shift to the template it came from, so deleting that template deletes this
+   * shift too. Omitted for shifts created outside the Build screen's Assign step. */
+  templateId?: string;
 }
 
 export function createShift(input: CreateShiftInput): Promise<Shift> {
@@ -43,4 +46,13 @@ export interface UpdateShiftInput {
 
 export function updateShift(shiftId: string, input: UpdateShiftInput): Promise<Shift> {
   return apiRequest<Shift>(`/shifts/${shiftId}`, { method: 'PATCH', body: input });
+}
+
+/**
+ * Deletes a shift outright. The API cascades this to the shift's staffing rows, so callers
+ * must confirm with the user first (see the edit screen's ConfirmDialog) — this is not the
+ * reversible "cancel" path.
+ */
+export function deleteShift(shiftId: string): Promise<void> {
+  return apiRequest<void>(`/shifts/${shiftId}`, { method: 'DELETE' });
 }

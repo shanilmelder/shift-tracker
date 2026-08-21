@@ -6,6 +6,9 @@ export interface ShiftTemplate {
   start_time: string; // HH:MM
   end_time: string; // HH:MM
   shift_area_id: string | null;
+  /** How many dated shifts were generated from this template — all of which are deleted with
+   * it. Shown in the delete confirmation. */
+  shift_count: number;
 }
 
 export interface CreateShiftTemplateInput {

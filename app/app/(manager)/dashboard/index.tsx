@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { theme, Card } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
 import { getMyLocation } from '../../../src/api/locations.api';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface NeedsYouItem {
   id: string;
@@ -54,11 +55,12 @@ const TODAY_LABEL = new Date()
 /** FR-025/SC-008: one screen, one call — no cross-referencing other screens needed. */
 export default function DashboardScreen(): React.JSX.Element {
   const router = useRouter();
-  const { data, isLoading } = useQuery({ queryKey: ['dashboard'], queryFn: () => apiRequest<DashboardData>('/dashboard') });
-  const { data: location } = useQuery({ queryKey: ['locations', 'mine'], queryFn: getMyLocation });
+  const { data, isLoading, refetch: refetchDashboard } = useQuery({ queryKey: ['dashboard'], queryFn: () => apiRequest<DashboardData>('/dashboard') });
+  const { data: location, refetch: refetchLocation } = useQuery({ queryKey: ['locations', 'mine'], queryFn: getMyLocation });
+  const refreshControl = usePullToRefresh({ refetch: refetchDashboard }, { refetch: refetchLocation });
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView refreshControl={refreshControl} style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
         <View>
           <Text style={styles.dateLabel}>{TODAY_LABEL}</Text>

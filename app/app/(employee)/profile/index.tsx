@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, Button, TextField } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
 import { useSessionStore } from '../../../src/stores/session.store';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface Profile {
   id: string;
@@ -20,7 +21,8 @@ interface Profile {
 export default function ProfileScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
   const clearSession = useSessionStore((state) => state.clearSession);
-  const { data: profile } = useQuery({ queryKey: ['profile', 'mine'], queryFn: () => apiRequest<Profile>('/profile') });
+  const { data: profile, refetch } = useQuery({ queryKey: ['profile', 'mine'], queryFn: () => apiRequest<Profile>('/profile') });
+  const refreshControl = usePullToRefresh({ refetch });
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -37,7 +39,7 @@ export default function ProfileScreen(): React.JSX.Element {
   });
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView refreshControl={refreshControl} contentContainerStyle={styles.container}>
       <Text style={styles.title}>Profile</Text>
 
       <TextField label="Name" value={name} onChangeText={setName} />

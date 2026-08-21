@@ -7,6 +7,7 @@ import { useShiftsList } from '../../../src/queries/shifts.queries';
 import * as timeEntriesApi from '../../../src/api/time-entries.api';
 import { rangeForView, startOfDay, addDays } from '../../../src/lib/date-ranges';
 import type { Shift } from '../../../src/types/api/shifts';
+import { usePullToRefresh } from '../../../src/hooks';
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -28,15 +29,16 @@ export default function EmployeeHomeScreen(): React.JSX.Element {
   const weekRange = useMemo(() => rangeForView('week', now), [now]);
   const upcomingWindow = useMemo(() => ({ from: startOfDay(now), to: addDays(startOfDay(now), 7) }), [now]);
 
-  const { data: upcomingShifts, isLoading: shiftsLoading } = useShiftsList({
+  const { data: upcomingShifts, isLoading: shiftsLoading, refetch: refetchShifts } = useShiftsList({
     from: upcomingWindow.from.toISOString(),
     to: upcomingWindow.to.toISOString(),
   });
-  const { data: openEntries } = useQuery({ queryKey: ['time-entries', 'mine'], queryFn: timeEntriesApi.listMyTimeEntries });
-  const { data: timesheet } = useQuery({
+  const { data: openEntries, refetch: refetchEntries } = useQuery({ queryKey: ['time-entries', 'mine'], queryFn: timeEntriesApi.listMyTimeEntries });
+  const { data: timesheet, refetch: refetchTimesheet } = useQuery({
     queryKey: ['timesheet', 'mine', 'week', weekRange.from.toISOString()],
     queryFn: () => timeEntriesApi.getMyTimesheet(weekRange.from.toISOString(), weekRange.to.toISOString()),
   });
+  const refreshControl = usePullToRefresh({ refetch: refetchShifts }, { refetch: refetchEntries }, { refetch: refetchTimesheet });
 
   const sortedUpcoming = useMemo(
     () => [...(upcomingShifts ?? [])].sort((a, b) => a.start_time.localeCompare(b.start_time)),
@@ -49,7 +51,7 @@ export default function EmployeeHomeScreen(): React.JSX.Element {
   const canClockIntoNext = nextShift && new Date(nextShift.start_time).getTime() - now.getTime() < 60 * 60 * 1000;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView refreshControl={refreshControl} style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Home</Text>
 
       {shiftsLoading ? (

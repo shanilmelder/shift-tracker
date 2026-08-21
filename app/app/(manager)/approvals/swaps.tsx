@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
 import { decideSwapRequest, type SwapRequest } from '../../../src/api/swap-requests.api';
+import { usePullToRefresh } from '../../../src/hooks';
 
 /**
  * Manager approvals queue for swap requests (FR-030). Note this same decide action is
@@ -15,11 +16,12 @@ import { decideSwapRequest, type SwapRequest } from '../../../src/api/swap-reque
 export default function SwapApprovalsScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
 
-  const { data: pendingSwaps, isLoading } = useQuery({
+  const { data: pendingSwaps, isLoading, refetch } = useQuery({
     queryKey: ['swap-requests', 'pending-approval'],
     // Manager-visible pending-approval swaps: those already accepted by the coworker.
     queryFn: () => apiRequest<SwapRequest[]>('/swap-requests').then((all) => all.filter((s) => s.status === 'coworker_accepted')),
   });
+  const refreshControl = usePullToRefresh({ refetch });
 
   // NOTE: an optional manager comment (FR-030) isn't collected in this UI yet — decide() is
   // called with no comment. Tracked as a Phase 12 polish item, not a missing capability: the
@@ -36,9 +38,10 @@ export default function SwapApprovalsScreen(): React.JSX.Element {
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
       ) : !pendingSwaps || pendingSwaps.length === 0 ? (
-        <EmptyState title="Nothing pending" message="No swap requests are waiting on your decision." />
+        <EmptyState refreshControl={refreshControl} title="Nothing pending" message="No swap requests are waiting on your decision." />
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={pendingSwaps}
           keyExtractor={(swap) => swap.id}
           renderItem={({ item: swap }) => (

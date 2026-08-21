@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, ScrollView, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { theme, Card } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
+import { usePullToRefresh } from '../../../src/hooks';
 
 interface AttendanceResult {
   attended: number;
@@ -11,10 +12,11 @@ interface AttendanceResult {
 }
 
 export default function AttendanceReport(): React.JSX.Element {
-  const { data, isLoading } = useQuery({ queryKey: ['reports', 'attendance'], queryFn: () => apiRequest<AttendanceResult>('/reports/attendance') });
+  const { data, isLoading, refetch } = useQuery({ queryKey: ['reports', 'attendance'], queryFn: () => apiRequest<AttendanceResult>('/reports/attendance') });
+  const refreshControl = usePullToRefresh({ refetch });
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} refreshControl={refreshControl}>
       <Text style={styles.title}>Attendance / no-show trend</Text>
       {isLoading || !data ? (
         <Text style={styles.status}>Loading…</Text>
@@ -25,12 +27,13 @@ export default function AttendanceReport(): React.JSX.Element {
           <Text style={[styles.row, data.noShows > 0 ? styles.warning : null]}>No-shows: {data.noShows}</Text>
         </Card>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background, padding: theme.spacing.md },
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: theme.spacing.md },
   title: { ...theme.typography.title, color: theme.colors.textPrimary, marginBottom: theme.spacing.md },
   status: { ...theme.typography.body, color: theme.colors.textSecondary },
   row: { ...theme.typography.body, color: theme.colors.textPrimary, marginBottom: theme.spacing.xs },

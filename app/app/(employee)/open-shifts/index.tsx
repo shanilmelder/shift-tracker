@@ -3,11 +3,13 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../src/components';
 import * as openShiftsApi from '../../../src/api/open-shifts.api';
+import { usePullToRefresh } from '../../../src/hooks';
 
 /** FR-029/FR-044: the open shift board — claiming does not confirm the shift, it's provisional. */
 export default function OpenShiftsScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
-  const { data: shifts, isLoading } = useQuery({ queryKey: ['open-shifts'], queryFn: openShiftsApi.listOpenShifts });
+  const { data: shifts, isLoading, refetch } = useQuery({ queryKey: ['open-shifts'], queryFn: openShiftsApi.listOpenShifts });
+  const refreshControl = usePullToRefresh({ refetch });
 
   const claimMutation = useMutation({
     mutationFn: openShiftsApi.claimOpenShift,
@@ -21,9 +23,10 @@ export default function OpenShiftsScreen(): React.JSX.Element {
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
       ) : !shifts || shifts.length === 0 ? (
-        <EmptyState title="No open shifts" message="There are no unfilled shifts you're eligible for right now." />
+        <EmptyState refreshControl={refreshControl} title="No open shifts" message="There are no unfilled shifts you're eligible for right now." />
       ) : (
         <FlatList
+          refreshControl={refreshControl}
           data={shifts}
           keyExtractor={(shift) => shift.id}
           renderItem={({ item: shift }) => (

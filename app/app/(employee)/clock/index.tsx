@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import * as Location from 'expo-location';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { theme, Card, EmptyState } from '../../../src/components';
@@ -9,6 +9,7 @@ import type { Shift } from '../../../src/types/api/shifts';
 import { generateIdempotencyKey } from '../../../src/offline/idempotency';
 import { useAppStore } from '../../../src/stores/app.store';
 import { ApiError } from '../../../src/types/api/common';
+import { usePullToRefresh } from '../../../src/hooks';
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -40,15 +41,19 @@ export default function ClockScreen(): React.JSX.Element {
   const syncStatus = useAppStore((state) => state.syncStatus);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: todaysShifts } = useShiftsList({
+  const { data: todaysShifts, refetch: refetchShifts } = useShiftsList({
     from: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
     to: new Date(new Date().setHours(23, 59, 59, 999)).toISOString(),
   });
 
-  const { data: openEntries } = useQuery({
+  const { data: openEntries, refetch: refetchEntries } = useQuery({
     queryKey: ['time-entries', 'mine'],
     queryFn: timeEntriesApi.listMyTimeEntries,
   });
+
+  // Only the two screen-level queries. Each card's geofence query (see ShiftClockCard) is
+  // per-shift config that doesn't change between pulls, so it stays out of the refresh.
+  const refreshControl = usePullToRefresh({ refetch: refetchShifts }, { refetch: refetchEntries });
 
   const clockInMutation = useMutation({
     mutationFn: async (shiftId: string) => {
@@ -80,7 +85,7 @@ export default function ClockScreen(): React.JSX.Element {
   const openEntry = openEntries?.find((e: timeEntriesApi.TimeEntry) => !e.clock_out_at);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} refreshControl={refreshControl}>
       {syncStatus !== 'online' ? (
         <View style={styles.offlineBanner}>
           <Text style={styles.offlineText}>
@@ -110,7 +115,7 @@ export default function ClockScreen(): React.JSX.Element {
           );
         })
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -245,6 +250,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  content: {
     padding: theme.spacing.md,
   },
   offlineBanner: {

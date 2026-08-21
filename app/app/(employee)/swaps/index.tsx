@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Badge, Button, EmptyState } from '../../../src/components';
 import { listMySwapRequests, respondToSwapRequest, type SwapRequest } from '../../../src/api/swap-requests.api';
+import { usePullToRefresh } from '../../../src/hooks';
 
 const STATUS_TONE = {
   pending: 'warning',
@@ -17,7 +18,8 @@ const STATUS_TONE = {
 export default function SwapsScreen(): React.JSX.Element {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: swaps, isLoading } = useQuery<SwapRequest[]>({ queryKey: ['swap-requests', 'mine'], queryFn: listMySwapRequests });
+  const { data: swaps, isLoading, refetch } = useQuery<SwapRequest[]>({ queryKey: ['swap-requests', 'mine'], queryFn: listMySwapRequests });
+  const refreshControl = usePullToRefresh({ refetch });
 
   const respondMutation = useMutation({
     mutationFn: ({ id, accept }: { id: string; accept: boolean }) => respondToSwapRequest(id, accept),
@@ -34,9 +36,10 @@ export default function SwapsScreen(): React.JSX.Element {
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
       ) : !swaps || swaps.length === 0 ? (
-        <EmptyState title="No swap requests" message="Requests you send or receive will show up here." />
+        <EmptyState refreshControl={refreshControl} title="No swap requests" message="Requests you send or receive will show up here." />
       ) : (
         <FlatList<SwapRequest>
+          refreshControl={refreshControl}
           data={swaps}
           keyExtractor={(swap) => swap.id}
           renderItem={({ item: swap }) => (

@@ -7,4 +7,5 @@ export * from './ListRow';
 export * from './Badge';
 export * from './ConfirmDialog';
 export * from './EmptyState';
+export * from './SwipeToDelete';
 export * from './TabBar';
