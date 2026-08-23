@@ -16,6 +16,23 @@ const EnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   EXPO_PUSH_ACCESS_TOKEN: z.string().min(1).optional(),
   CORS_ORIGIN: z.string().optional(),
+
+  /**
+   * Where the reporting assistant sends its chat completions. Defaults to a local Ollama
+   * daemon, which is right for `npm run dev` on a machine running Ollama.
+   *
+   * A deployed API cannot reach a developer's `localhost`, so any non-local deployment must
+   * set this to a host it can actually reach — `https://ollama.com` (with OLLAMA_API_KEY) if
+   * the model is a `-cloud` one, or a tunnel to the machine running the daemon.
+   */
+  OLLAMA_BASE_URL: z.string().url().default('http://localhost:11434'),
+  /**
+   * Must advertise the `tools` capability — the assistant is built entirely on tool calls and
+   * a model without them will answer from imagination instead of from the database.
+   */
+  OLLAMA_MODEL: z.string().min(1).default('gpt-oss:120b-cloud'),
+  /** Only needed when OLLAMA_BASE_URL points at a host that authenticates (e.g. ollama.com). */
+  OLLAMA_API_KEY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

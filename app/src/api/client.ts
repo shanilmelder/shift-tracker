@@ -26,6 +26,10 @@ export interface RequestOptions {
   /** Overrides the stored session token — used only for the sign-in flow's immediate follow-up
    * call to `/auth/me`, before a role is known and the session store can be populated. */
   overrideAccessToken?: string;
+  /** Overrides REQUEST_TIMEOUT_MS for one call. Only for endpoints that are legitimately slow
+   * by nature rather than slow because something is wrong — the AI assistant waits on a model
+   * that may take tens of seconds, where the default would abort a request that was fine. */
+  timeoutMs?: number;
 }
 
 function buildUrl(path: string, query?: RequestOptions['query']): string {
@@ -39,12 +43,12 @@ function buildUrl(path: string, query?: RequestOptions['query']): string {
 }
 
 export async function apiRequest<TResponse>(path: string, options: RequestOptions = {}): Promise<TResponse> {
-  const { method = 'GET', body, query, overrideAccessToken } = options;
+  const { method = 'GET', body, query, overrideAccessToken, timeoutMs = REQUEST_TIMEOUT_MS } = options;
   const accessToken = overrideAccessToken ?? useSessionStore.getState().accessToken;
 
   // Hand-rolled rather than `AbortSignal.timeout()`, which Hermes does not implement.
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   let response: Response;
   try {

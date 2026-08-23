@@ -6,7 +6,7 @@ import { useSessionStore } from '../../../src/stores/session.store';
 
 const LINKS = [
   { title: 'Shift areas', subtitle: 'Manage the areas staff are assigned to', href: '/(manager)/shift-areas' },
-  { title: 'Reports', subtitle: 'Labour cost, hours, and attendance', href: '/(manager)/reports/labor-cost' },
+  { title: 'Reports', subtitle: 'Ask about shifts, hours, and time off', href: '/(manager)/reports' },
   { title: 'Announcements', subtitle: 'Post updates to your team', href: '/(manager)/announcements' },
 ] as const;
 
