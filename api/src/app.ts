@@ -1,3 +1,4 @@
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
@@ -110,4 +111,28 @@ export async function buildApp(): Promise<FastifyInstance> {
   registerTimeOffConflictCheck(hasApprovedTimeOff);
 
   return app;
+}
+
+/**
+ * Serverless entrypoint. Vercel's Fastify preset resolves `src/app.ts` as the entrypoint and
+ * requires its default export to be a request handler — a named `buildApp` alone makes every
+ * request fail with "Invalid export found in module ... The default export must be a function
+ * or server". Nothing else uses this export: `server.ts` still owns `listen()` and the cron
+ * scheduler for local/single-instance runs, and the tests still import `buildApp` directly.
+ *
+ * The build is memoised as a *promise* so concurrent invocations on the same warm instance
+ * share one app rather than racing to build several; `ready()` must resolve before requests
+ * are routed, so it's awaited inside the memoised chain rather than on every call.
+ */
+let appPromise: Promise<FastifyInstance> | undefined;
+
+export default async function handler(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  appPromise ??= buildApp().then(async (app) => {
+    await app.ready();
+    return app;
+  });
+  const app = await appPromise;
+  // Hands the raw Node request to the http.Server Fastify built, which is what its routing is
+  // attached to. There is no `listen()` in serverless — the platform owns the socket.
+  app.server.emit('request', req, res);
 }
