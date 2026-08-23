@@ -3,6 +3,8 @@ import { supabase } from './supabase-client.js';
 export interface TimeOffRequestRow {
   id: string;
   employee_id: string;
+  /** Present on location-scoped reads, which join the employee for display. */
+  employee_name?: string;
   start_date: string;
   end_date: string;
   reason: string;
@@ -36,10 +38,19 @@ export async function listForEmployee(employeeId: string): Promise<TimeOffReques
 export async function listForLocation(locationId: string): Promise<TimeOffRequestRow[]> {
   const { data, error } = await supabase
     .from('time_off_requests')
-    .select('*, employee:profiles!inner(location_id)')
-    .eq('employee.location_id', locationId);
+    // The FK is named explicitly. `profiles!inner` alone is AMBIGUOUS here — this table has two
+    // foreign keys to profiles (employee_id and decided_by) — and PostgREST refuses an ambiguous
+    // embed with PGRST201 rather than picking one. That error made every manager's approvals
+    // queue come back empty while the dashboard, which does name the FK, still showed the count.
+    .select('*, employee:profiles!time_off_requests_employee_id_fkey!inner(name, location_id)')
+    .eq('employee.location_id', locationId)
+    .order('start_date', { ascending: true });
   if (error) throw error;
-  return (data ?? []) as TimeOffRequestRow[];
+
+  return (data ?? []).map((row) => {
+    const employee = (row as { employee?: { name?: string } }).employee;
+    return { ...(row as TimeOffRequestRow), employee_name: employee?.name };
+  });
 }
 
 export async function findById(id: string): Promise<TimeOffRequestRow | null> {

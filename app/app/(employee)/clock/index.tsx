@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
-import * as Location from 'expo-location';
+import { getCurrentCoordinates } from '../../../src/lib/location';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { theme, Card, EmptyState } from '../../../src/components';
 import { useShiftsList } from '../../../src/queries/shifts.queries';
@@ -40,6 +40,9 @@ export default function ClockScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
   const syncStatus = useAppStore((state) => state.syncStatus);
   const [error, setError] = useState<string | null>(null);
+  /** Set after a clock action that had to proceed without a position, so the employee knows
+   * why their entry will show up flagged rather than being surprised by it later. */
+  const [locationUnavailable, setLocationUnavailable] = useState(false);
 
   const { data: todaysShifts, refetch: refetchShifts } = useShiftsList({
     from: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
@@ -57,11 +60,16 @@ export default function ClockScreen(): React.JSX.Element {
 
   const clockInMutation = useMutation({
     mutationFn: async (shiftId: string) => {
-      const position = await Location.getCurrentPositionAsync({});
+      // Null when the permission is refused or no fix is available. Sent as-is rather than
+      // aborting: the API accepts a position-less entry and flags it for review, because
+      // refusing to clock someone in over location would be the hardest possible block and
+      // FR-038 does not allow the check to block at all.
+      const coords = await getCurrentCoordinates();
+      setLocationUnavailable(coords === null);
       return timeEntriesApi.clockIn({
         shiftId,
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
+        lat: coords?.lat,
+        lng: coords?.lng,
         idempotencyKey: generateIdempotencyKey(),
       });
     },
@@ -71,10 +79,11 @@ export default function ClockScreen(): React.JSX.Element {
 
   const clockOutMutation = useMutation({
     mutationFn: async (entryId: string) => {
-      const position = await Location.getCurrentPositionAsync({});
+      const coords = await getCurrentCoordinates();
+      setLocationUnavailable(coords === null);
       return timeEntriesApi.clockOut(entryId, {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
+        lat: coords?.lat,
+        lng: coords?.lng,
         idempotencyKey: generateIdempotencyKey(),
       });
     },
@@ -95,6 +104,15 @@ export default function ClockScreen(): React.JSX.Element {
       ) : null}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      {locationUnavailable ? (
+        <View style={styles.noticeBanner}>
+          <Text style={styles.noticeText}>
+            Location wasn&apos;t available, so this was recorded without one and flagged for your manager to review.
+            Enable location for Shift Tracker to avoid that.
+          </Text>
+        </View>
+      ) : null}
 
       {!todaysShifts || todaysShifts.length === 0 ? (
         <EmptyState title="No shifts today" message="You have nothing scheduled today to clock into." />
@@ -142,14 +160,11 @@ function ShiftClockCard({ shift, entry, isPending, disabled, onClockIn, onClockO
 
   useEffect(() => {
     let cancelled = false;
-    Location.getCurrentPositionAsync({})
-      .then((result) => {
-        if (!cancelled) setPosition({ lat: result.coords.latitude, lng: result.coords.longitude });
-      })
-      .catch(() => {
-        // No permission or location unavailable — the status card below just stays hidden;
-        // clocking in/out itself still works (it requests location again at that point).
-      });
+    void getCurrentCoordinates().then((coords) => {
+      // Null when permission is refused or unavailable — the status row below just stays
+      // hidden. Clocking in still works; it asks again at that point and proceeds either way.
+      if (!cancelled && coords) setPosition(coords);
+    });
     return () => {
       cancelled = true;
     };
@@ -268,6 +283,16 @@ const styles = StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.danger,
     marginBottom: theme.spacing.md,
+  },
+  noticeBanner: {
+    backgroundColor: theme.colors.surfaceMuted,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  noticeText: {
+    ...theme.typography.caption,
+    color: theme.colors.warning,
   },
   card: {
     marginBottom: theme.spacing.md,

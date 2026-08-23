@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../src/components';
-import { apiRequest } from '../../../src/api/client';
-import { decideSwapRequest, type SwapRequest } from '../../../src/api/swap-requests.api';
+import { decideSwapRequest, listLocationSwapRequests } from '../../../src/api/swap-requests.api';
 import { usePullToRefresh } from '../../../src/hooks';
 
 /**
@@ -16,10 +15,12 @@ import { usePullToRefresh } from '../../../src/hooks';
 export default function SwapApprovalsScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
 
-  const { data: pendingSwaps, isLoading, refetch } = useQuery({
+  const { data: pendingSwaps, isLoading, isError, error, refetch } = useQuery({
+    // Location-scoped, not caller-scoped. Hitting the plain list used to return only the
+    // caller's OWN swaps, and a manager is never a swap's requester or target — so this queue
+    // was empty no matter how many swaps existed.
     queryKey: ['swap-requests', 'pending-approval'],
-    // Manager-visible pending-approval swaps: those already accepted by the coworker.
-    queryFn: () => apiRequest<SwapRequest[]>('/swap-requests').then((all) => all.filter((s) => s.status === 'coworker_accepted')),
+    queryFn: () => listLocationSwapRequests().then((all) => all.filter((s) => s.status === 'coworker_accepted')),
   });
   const refreshControl = usePullToRefresh({ refetch });
 
@@ -37,6 +38,12 @@ export default function SwapApprovalsScreen(): React.JSX.Element {
 
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
+      ) : isError ? (
+        // Distinguished from "nothing pending" on purpose: a failing query rendering as an
+        // empty queue is indistinguishable from an empty one, and hid a real bug for a while.
+        <Text style={styles.errorText}>
+          {error instanceof Error ? error.message : 'Could not load swap requests.'}
+        </Text>
       ) : !pendingSwaps || pendingSwaps.length === 0 ? (
         <EmptyState refreshControl={refreshControl} title="Nothing pending" message="No swap requests are waiting on your decision." />
       ) : (
@@ -46,8 +53,12 @@ export default function SwapApprovalsScreen(): React.JSX.Element {
           keyExtractor={(swap) => swap.id}
           renderItem={({ item: swap }) => (
             <ListRow
-              title={`Swap for shift ${swap.shift_id}`}
-              subtitle="Coworker accepted — awaiting final approval"
+              title={swap.shift_name ?? 'Shift swap'}
+              subtitle={
+                swap.requesting_employee_name && swap.target_employee_name
+                  ? `${swap.requesting_employee_name} → ${swap.target_employee_name} · accepted, awaiting you`
+                  : 'Coworker accepted — awaiting final approval'
+              }
               right={
                 <View style={styles.actions}>
                   <Button label="Deny" variant="secondary" onPress={() => decideMutation.mutate({ id: swap.id, approve: false })} style={styles.actionButton} />
@@ -70,6 +81,11 @@ const styles = StyleSheet.create({
   title: {
     ...theme.typography.title,
     color: theme.colors.textPrimary,
+    padding: theme.spacing.md,
+  },
+  errorText: {
+    ...theme.typography.body,
+    color: theme.colors.danger,
     padding: theme.spacing.md,
   },
   status: {

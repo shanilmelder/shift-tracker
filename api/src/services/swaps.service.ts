@@ -4,6 +4,7 @@ import {
   findSwapRequestById,
   updateSwapRequest,
   listSwapRequestsForEmployee,
+  listSwapRequestsForLocation,
   type SwapRequestRow,
 } from '../data/swap-requests.repo.js';
 import { checkStaffingConflicts } from './staffing.service.js';
@@ -20,7 +21,12 @@ import type { CallerProfile } from '../types.js';
  * duplicating the double-booking/insufficient-rest logic (this is also what open-shifts
  * eligibility, Phase 9, reuses — see plan.md's services layer note).
  */
-export async function listEligibleCoworkers(caller: CallerProfile, shiftId: string): Promise<string[]> {
+export interface EligibleCoworker {
+  id: string;
+  name: string;
+}
+
+export async function listEligibleCoworkers(caller: CallerProfile, shiftId: string): Promise<EligibleCoworker[]> {
   const shift = await findShiftById(shiftId);
   if (!shift) throw new Error('Shift not found');
 
@@ -30,10 +36,24 @@ export async function listEligibleCoworkers(caller: CallerProfile, shiftId: stri
     throw new Error('Not authorized to view eligible coworkers for this shift');
   }
 
-  const { data: coworkers, error } = await supabase.from('profiles').select('id').eq('location_id', caller.locationId).eq('role', 'employee');
+  const { data: coworkers, error } = await supabase
+    .from('profiles')
+    // `name` as well as `id`: callers render this list, and a screen full of raw uuids is not
+    // something anyone can pick a colleague from.
+    .select('id, name')
+    .eq('location_id', caller.locationId)
+    .eq('role', 'employee')
+    // Excluding the caller. Without this they appear in their own list — the double-booking
+    // check deliberately ignores the shift being swapped, so the requester never conflicts with
+    // it — and picking themselves fails with "Cannot request a swap with yourself". With a
+    // single employee at a location, that was the ONLY option offered.
+    .neq('id', caller.id)
+    // A deactivated colleague cannot sign in to accept, so offering them is a dead end.
+    .eq('is_active', true)
+    .order('name');
   if (error) throw error;
 
-  const eligible: string[] = [];
+  const eligible: EligibleCoworker[] = [];
   for (const coworker of coworkers ?? []) {
     const conflict = await checkStaffingConflicts(coworker.id, {
       id: shiftId,
@@ -41,7 +61,7 @@ export async function listEligibleCoworkers(caller: CallerProfile, shiftId: stri
       endTime: shift.end_time,
       locationId: shift.location_id,
     });
-    if (!conflict) eligible.push(coworker.id);
+    if (!conflict) eligible.push({ id: coworker.id as string, name: coworker.name as string });
   }
   return eligible;
 }
@@ -130,4 +150,10 @@ export async function decideSwapRequest(
 
 export async function listMySwapRequests(employeeId: string): Promise<SwapRequestRow[]> {
   return listSwapRequestsForEmployee(employeeId);
+}
+
+/** Every swap at a location — the manager's approvals queue. See the repo function's comment
+ * for why filtering by caller alone left that queue permanently empty. */
+export async function listSwapRequestsForManager(locationId: string): Promise<SwapRequestRow[]> {
+  return listSwapRequestsForLocation(locationId);
 }

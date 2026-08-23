@@ -3,6 +3,8 @@ import { apiRequest } from './client';
 export interface TimeOffRequest {
   id: string;
   employee_id: string;
+  /** Joined on the location-scoped (manager) read only — an approvals queue needs a name. */
+  employee_name?: string;
   start_date: string;
   end_date: string;
   reason: string;

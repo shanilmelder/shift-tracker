@@ -35,8 +35,9 @@ export async function insertClockIn(input: {
   shiftId: string;
   employeeId: string;
   clockInAt: string;
-  lat: number;
-  lng: number;
+  /** Nullable in the schema, and genuinely absent when the device gave no position. */
+  lat?: number;
+  lng?: number;
   flaggedForReview: boolean;
   idempotencyKey: string;
 }): Promise<TimeEntryRow> {
@@ -46,8 +47,8 @@ export async function insertClockIn(input: {
       shift_id: input.shiftId,
       employee_id: input.employeeId,
       clock_in_at: input.clockInAt,
-      clock_in_lat: input.lat,
-      clock_in_lng: input.lng,
+      clock_in_lat: input.lat ?? null,
+      clock_in_lng: input.lng ?? null,
       flagged_for_review: input.flaggedForReview,
       idempotency_key: input.idempotencyKey,
     })
@@ -59,14 +60,14 @@ export async function insertClockIn(input: {
 
 export async function recordClockOut(
   id: string,
-  input: { clockOutAt: string; lat: number; lng: number; flaggedForReview: boolean },
+  input: { clockOutAt: string; lat?: number; lng?: number; flaggedForReview: boolean },
 ): Promise<TimeEntryRow> {
   const { data, error } = await supabase
     .from('time_entries')
     .update({
       clock_out_at: input.clockOutAt,
-      clock_out_lat: input.lat,
-      clock_out_lng: input.lng,
+      clock_out_lat: input.lat ?? null,
+      clock_out_lng: input.lng ?? null,
       // Caller (time-entries.service.ts) already OR's this with the entry's existing flag, so
       // a clock-out inside the geofence never un-flags an entry a clock-in already flagged.
       flagged_for_review: input.flaggedForReview,

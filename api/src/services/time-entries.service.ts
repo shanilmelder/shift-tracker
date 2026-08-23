@@ -39,11 +39,36 @@ export function isWithinGeofence(
   return haversineDistanceMeters(point, center) <= radiusMeters;
 }
 
+/**
+ * Whether a clock action should be flagged, given the position the device supplied (if any) and
+ * the location's configured fence.
+ *
+ * Three cases, and the asymmetry between them is deliberate:
+ *  - No fence configured: never flag. "Unknown" must not be read as "outside" (FR-038).
+ *  - No position from the device: FLAG. The action still goes through — refusing it would be
+ *    the hardest possible block, and FR-038 says the check never blocks — but a clock-in that
+ *    cannot be placed is exactly what a manager should review.
+ *  - Both known: the actual distance check.
+ */
+function isFlagworthy(
+  point: { lat?: number; lng?: number },
+  location: { latitude: number | null; longitude: number | null; geofence_radius_m: number },
+): boolean {
+  if (location.latitude === null || location.longitude === null) return false;
+  if (point.lat === undefined || point.lng === undefined) return true;
+  return !isWithinGeofence(
+    { lat: point.lat, lng: point.lng },
+    { lat: location.latitude, lng: location.longitude },
+    location.geofence_radius_m,
+  );
+}
+
 export interface ClockInInput {
   shiftId: string;
   employeeId: string;
-  lat: number;
-  lng: number;
+  /** Absent when the device would not give a position — see evaluateGeofence. */
+  lat?: number;
+  lng?: number;
   idempotencyKey: string;
 }
 
@@ -66,21 +91,13 @@ export async function clockIn(input: ClockInInput): Promise<TimeEntryRow> {
     .single();
   if (locationError || !location) throw locationError ?? new Error('Location not found');
 
-  // A location with no coordinates yet (not set by a manager) fails open — never flags —
-  // rather than treating "unknown" as "outside the fence" (FR-038: this check never blocks
-  // or penalizes, it only ever adds a review flag when there's an actual answer).
-  const withinGeofence =
-    location.latitude === null || location.longitude === null
-      ? true
-      : isWithinGeofence({ lat: input.lat, lng: input.lng }, { lat: location.latitude, lng: location.longitude }, location.geofence_radius_m);
-
   return insertClockIn({
     shiftId: input.shiftId,
     employeeId: input.employeeId,
     clockInAt: new Date().toISOString(),
     lat: input.lat,
     lng: input.lng,
-    flaggedForReview: !withinGeofence,
+    flaggedForReview: isFlagworthy(input, location),
     idempotencyKey: input.idempotencyKey,
   });
 }
@@ -124,8 +141,8 @@ export async function checkGeofence(shiftId: string, point: { lat: number; lng: 
 export interface ClockOutInput {
   timeEntryId: string;
   employeeId: string;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
 }
 
 export async function clockOut(input: ClockOutInput): Promise<TimeEntryRow> {
@@ -142,16 +159,12 @@ export async function clockOut(input: ClockOutInput): Promise<TimeEntryRow> {
     .single();
   if (locationError || !location) throw locationError ?? new Error('Location not found');
 
-  const withinGeofence =
-    location.latitude === null || location.longitude === null
-      ? true
-      : isWithinGeofence({ lat: input.lat, lng: input.lng }, { lat: location.latitude, lng: location.longitude }, location.geofence_radius_m);
-
   return recordClockOut(entry.id, {
     clockOutAt: new Date().toISOString(),
     lat: input.lat,
     lng: input.lng,
-    flaggedForReview: entry.flagged_for_review || !withinGeofence,
+    // Never un-flags: an entry already flagged at clock-in stays flagged.
+    flaggedForReview: entry.flagged_for_review || isFlagworthy(input, location),
   });
 }
 
