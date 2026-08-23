@@ -1,6 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import { CreateSwapRequestSchema, RespondSwapSchema, DecideSwapSchema } from '../schemas/swap-requests.schemas.js';
-import { listEligibleCoworkers, requestSwap, respondToSwap, decideSwapRequest, listMySwapRequests } from '../services/swaps.service.js';
+import {
+  listEligibleCoworkers,
+  requestSwap,
+  respondToSwap,
+  decideSwapRequest,
+  listMySwapRequests,
+  listSwapRequestsForManager,
+} from '../services/swaps.service.js';
 import '../types.js';
 
 export async function swapRequestsRoutes(app: FastifyInstance): Promise<void> {
@@ -58,8 +65,23 @@ export async function swapRequestsRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
+  /**
+   * An employee's own swaps; a manager's whole location.
+   *
+   * Previously this always filtered to the caller's own requests, which meant a manager — who
+   * is neither the requester nor the target of any swap — could never see one, and their
+   * approvals queue was empty by construction.
+   *
+   * `?mine=true` lets a manager ask for their own instead, matching how the time-off list
+   * already behaves.
+   */
   app.get('/v1/swap-requests', async (request, reply) => {
-    const swaps = await listMySwapRequests(request.caller!.id);
-    await reply.send(swaps);
+    const caller = request.caller!;
+    const { mine } = request.query as { mine?: string };
+    if (caller.role === 'manager' && mine !== 'true') {
+      await reply.send(await listSwapRequestsForManager(caller.locationId));
+      return;
+    }
+    await reply.send(await listMySwapRequests(caller.id));
   });
 }

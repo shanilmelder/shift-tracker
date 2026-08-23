@@ -8,7 +8,7 @@ import { usePullToRefresh } from '../../../src/hooks';
 /** FR-030: manager reviews time-off requests, approve/deny (optional comment: see Phase 7's tracked polish note — same gap applies here). */
 export default function TimeOffApprovalsScreen(): React.JSX.Element {
   const queryClient = useQueryClient();
-  const { data: requests, isLoading, refetch } = useQuery({
+  const { data: requests, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['time-off-requests', 'pending-approval'],
     queryFn: () => timeOffApi.listPendingTimeOffRequests().then((all) => all.filter((r) => r.status === 'pending')),
   });
@@ -25,6 +25,12 @@ export default function TimeOffApprovalsScreen(): React.JSX.Element {
 
       {isLoading ? (
         <Text style={styles.status}>Loading…</Text>
+      ) : isError ? (
+        // A failed query used to fall through to "Nothing pending", which is exactly what a
+        // genuinely empty queue looks like — so a broken request read as "no requests exist".
+        <Text style={styles.errorText}>
+          {error instanceof Error ? error.message : 'Could not load time-off requests.'}
+        </Text>
       ) : !requests || requests.length === 0 ? (
         <EmptyState refreshControl={refreshControl} title="Nothing pending" />
       ) : (
@@ -34,7 +40,7 @@ export default function TimeOffApprovalsScreen(): React.JSX.Element {
           keyExtractor={(r) => r.id}
           renderItem={({ item }) => (
             <ListRow
-              title={`${item.start_date} – ${item.end_date}`}
+              title={item.employee_name ? `${item.employee_name} · ${item.start_date} – ${item.end_date}` : `${item.start_date} – ${item.end_date}`}
               subtitle={item.reason}
               right={
                 <View style={styles.actions}>
@@ -58,6 +64,11 @@ const styles = StyleSheet.create({
   title: {
     ...theme.typography.title,
     color: theme.colors.textPrimary,
+    padding: theme.spacing.md,
+  },
+  errorText: {
+    ...theme.typography.body,
+    color: theme.colors.danger,
     padding: theme.spacing.md,
   },
   status: {

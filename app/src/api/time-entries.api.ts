@@ -18,11 +18,13 @@ export interface TimeEntry {
   breaks: TimeEntryBreak[];
 }
 
-export function clockIn(input: { shiftId: string; lat: number; lng: number; idempotencyKey: string }): Promise<TimeEntry> {
+/** `lat`/`lng` are omitted when the device would not give a position. The API records the
+ * entry anyway and flags it for review — the location check must never block clocking in. */
+export function clockIn(input: { shiftId: string; lat?: number; lng?: number; idempotencyKey: string }): Promise<TimeEntry> {
   return apiRequest<TimeEntry>('/time-entries/clock-in', { method: 'POST', body: input });
 }
 
-export function clockOut(entryId: string, input: { lat: number; lng: number; idempotencyKey: string }): Promise<TimeEntry> {
+export function clockOut(entryId: string, input: { lat?: number; lng?: number; idempotencyKey: string }): Promise<TimeEntry> {
   return apiRequest<TimeEntry>(`/time-entries/${entryId}/clock-out`, { method: 'POST', body: input });
 }
 

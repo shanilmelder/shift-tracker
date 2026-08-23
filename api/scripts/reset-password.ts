@@ -13,6 +13,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { generateTempPassword } from '../src/lib/temp-password.js';
+import { findAuthUserByEmail } from '../src/data/auth-users.repo.js';
 
 function parseArgs(argv: string[]): Record<string, string> {
   const args: Record<string, string> = {};
@@ -44,9 +45,11 @@ async function main(): Promise<void> {
 
   // listUsers rather than a profiles lookup: the address lives on the auth user, and this
   // script must work even when the profile row is what is broken.
-  const { data: list, error: listError } = await supabase.auth.admin.listUsers();
-  if (listError) throw listError;
-  const user = list.users.find((candidate) => candidate.email?.toLowerCase() === email.toLowerCase());
+  // Looked up against auth.users rather than profiles: the address lives on the auth user, and
+  // this script must work even when the profile row is what is broken. The helper paginates —
+  // a bare listUsers() returns only the first page and would report "no account" for anyone
+  // past it.
+  const user = await findAuthUserByEmail(email, supabase);
   if (!user) throw new Error(`No account found for ${email}`);
 
   const tempPassword = generateTempPassword();

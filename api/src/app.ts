@@ -36,7 +36,7 @@ import { hasApprovedTimeOff } from './services/time-off.service.js';
  * There is deliberately no sign-up route in this list, or anywhere in this codebase — account
  * creation is manager-only (FR-002/FR-005), enforced by never wiring such a route at all.
  */
-const PUBLIC_ROUTES = new Set<string>(['POST /v1/auth/session']);
+const PUBLIC_ROUTES = new Set<string>(['POST /v1/auth/session', 'POST /v1/auth/forgot-password']);
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({

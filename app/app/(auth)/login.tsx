@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Link } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -81,11 +82,9 @@ export default function LoginScreen(): React.JSX.Element {
 
       <Button label={isSubmitting ? 'Signing in…' : 'Sign in'} onPress={handleSubmit(onSubmit)} disabled={isSubmitting} />
 
-      {/* No self-service reset: recovery is manager-issued, so the honest instruction is who
-          to ask rather than a link to a flow that no longer exists. */}
-      <Text style={styles.helpText}>
-        Forgotten your password? Ask your manager to send you a new temporary one.
-      </Text>
+      <Link href="/(auth)/forgot-password" style={styles.link}>
+        Forgot password?
+      </Link>
     </View>
   );
 }
@@ -106,12 +105,6 @@ const styles = StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.danger,
     marginBottom: theme.spacing.md,
-  },
-  helpText: {
-    ...theme.typography.caption,
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing.md,
-    textAlign: 'center',
   },
   link: {
     ...theme.typography.body,
