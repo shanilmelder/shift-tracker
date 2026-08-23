@@ -18,6 +18,7 @@ import { shiftTemplatesRoutes } from './routes/shift-templates.routes.js';
 import { locationsRoutes } from './routes/locations.routes.js';
 import { announcementsRoutes } from './routes/announcements.routes.js';
 import { reportsRoutes } from './routes/reports.routes.js';
+import { assistantRoutes } from './routes/assistant.routes.js';
 import { dashboardRoutes } from './routes/dashboard.routes.js';
 import { profileRoutes } from './routes/profile.routes.js';
 import { availabilityRoutes } from './routes/availability.routes.js';
@@ -99,6 +100,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(locationsRoutes);
   await app.register(announcementsRoutes);
   await app.register(reportsRoutes);
+  await app.register(assistantRoutes);
   await app.register(dashboardRoutes);
   await app.register(profileRoutes);
   await app.register(availabilityRoutes);
