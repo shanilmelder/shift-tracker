@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "lint": "eslint . --ext .ts",
     "seed:first-manager": "tsx --env-file=.env scripts/seed-first-manager.ts",
-    "resend-invite": "tsx --env-file=.env scripts/resend-invite.ts"
+    "reset-password": "tsx --env-file=.env scripts/reset-password.ts"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

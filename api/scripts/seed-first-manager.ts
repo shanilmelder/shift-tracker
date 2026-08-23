@@ -15,7 +15,7 @@
  * without creating a duplicate.
  */
 import { createClient } from '@supabase/supabase-js';
-import { RESET_PASSWORD_DEEP_LINK } from '../src/config/app-links.js';
+import { generateTempPassword } from '../src/lib/temp-password.js';
 
 function parseArgs(argv: string[]): Record<string, string> {
   const args: Record<string, string> = {};
@@ -77,17 +77,25 @@ async function main(): Promise<void> {
   // app_metadata, in the same transaction as the auth user — hence no separate insert and no
   // compensating delete. created_by is left unset, NULL only for this one pre-provisioned
   // account (FR-003).
+  const tempPassword = generateTempPassword();
   const { data: authResult, error: authError } = await supabase.auth.admin.createUser({
     email,
-    email_confirm: false,
+    password: tempPassword,
+    // Confirmed outright: nobody exists yet to approve this account, and the flow has no
+    // confirmation link. Left false, GoTrue refuses the password sign-in below.
+    email_confirm: true,
     app_metadata: { name, role: 'manager', location_id: location.id },
   });
   if (authError || !authResult?.user) throw authError ?? new Error('Failed to create auth user');
 
-  await supabase.auth.admin.inviteUserByEmail(email, { redirectTo: RESET_PASSWORD_DEEP_LINK });
-
+  // Printed rather than emailed. This runs on an operator's machine at bootstrap, before any
+  // email provider is necessarily configured, and the profile starts at invite_status
+  // 'pending' so the app forces a change on first sign-in regardless.
   console.log(`Seeded first manager "${name}" <${email}> at location "${locationName}".`);
-  console.log('An invite email has been sent for them to set their own password.');
+  console.log('');
+  console.log(`  Temporary password: ${tempPassword}`);
+  console.log('');
+  console.log('Sign in with it once; the app will require a new password immediately.');
 }
 
 main().catch((error) => {

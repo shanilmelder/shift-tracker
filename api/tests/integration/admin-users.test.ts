@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RESET_PASSWORD_DEEP_LINK } from '../../src/config/app-links.js';
 
 /**
- * Integration test for T031 / User Story 1: a manager creates an employee account and the
- * result never contains a plaintext password (invite-based first access, FR-007), and the
- * created profile starts with invite_status='pending'.
+ * Integration test for T031 / User Story 1: a manager creates an employee account, which is
+ * provisioned with a generated temporary password and starts at invite_status='pending' so the
+ * app and API both force a change before the account can be used (FR-007).
  *
  * This test exercises `users.service.ts` directly against a mocked Supabase client rather
  * than a live test project, so it runs in CI without external dependencies; the
@@ -19,10 +18,11 @@ import { RESET_PASSWORD_DEEP_LINK } from '../../src/config/app-links.js';
 
 const authAdminCreateUser = vi.fn();
 const authAdminDeleteUser = vi.fn();
-const authResetPasswordForEmail = vi.fn();
-/** Present only so a regression back to it fails loudly: this is the wrong call for an
- * account that already exists, and using it is what stopped invite mail being sent at all. */
+const sendTempPasswordEmail = vi.fn();
+/** Present only so a regression back to the emailed-link flow fails loudly. Both were the
+ * wrong call for an account that already exists, and both failed silently when used. */
 const authAdminInviteUserByEmail = vi.fn();
+const authResetPasswordForEmail = vi.fn();
 const profilesMaybeSingle = vi.fn();
 /** Records any write attempted against `profiles` — there should never be one. */
 const profilesWrite = vi.fn();
@@ -54,6 +54,10 @@ vi.mock('../../src/data/supabase-client.js', () => ({
   },
 }));
 
+vi.mock('../../src/services/email.service.js', () => ({
+  sendTempPasswordEmail: (...args: unknown[]) => sendTempPasswordEmail(...args),
+}));
+
 const PROFILE = {
   id: 'auth-user-1',
   name: 'Jordan Employee',
@@ -68,14 +72,16 @@ describe('users.service.createUser', () => {
     authAdminDeleteUser.mockReset();
     authAdminInviteUserByEmail.mockReset();
     authResetPasswordForEmail.mockReset();
+    sendTempPasswordEmail.mockReset();
+    sendTempPasswordEmail.mockResolvedValue({ sent: true });
     profilesMaybeSingle.mockReset();
     profilesWrite.mockReset();
     locationsMaybeSingle.mockReset();
   });
 
-  it('creates the auth user and profile together, with no plaintext password returned', async () => {
+  it('creates the auth user and profile together, with a temporary password', async () => {
     authAdminCreateUser.mockResolvedValue({ data: { user: { id: 'auth-user-1' } }, error: null });
-    authResetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+
     profilesMaybeSingle.mockResolvedValue({ data: PROFILE, error: null });
 
     const { createUser } = await import('../../src/services/users.service.js');
@@ -88,30 +94,40 @@ describe('users.service.createUser', () => {
     });
 
     expect(authAdminCreateUser).toHaveBeenCalledTimes(1);
-    // The Supabase invite call must not request/return a plaintext password.
     const createUserArgs = authAdminCreateUser.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(createUserArgs).not.toHaveProperty('password');
-    expect(result).not.toHaveProperty('password');
+    // The account is provisioned WITH a password now, and confirmed outright — without
+    // email_confirm GoTrue refuses the password sign-in the whole flow depends on.
+    expect(createUserArgs.password).toEqual(expect.any(String));
+    expect(createUserArgs.email_confirm).toBe(true);
+
+    // Returned to the manager exactly once, so onboarding survives a failed email.
+    expect(result.tempPassword).toEqual(expect.any(String));
+    expect(result.tempPassword.length).toBeGreaterThanOrEqual(12);
+    expect(result.tempPassword).toBe(createUserArgs.password);
+    // 'pending' is what both the app prompt and the API gate key off.
     expect(result.inviteStatus).toBe('pending');
 
     // The profile is the trigger's job now; the service must not write to that table at all.
     expect(profilesWrite).not.toHaveBeenCalled();
 
-    // The whole point of the flow: the new user must actually be mailed a link to set a
-    // password, since no password is ever handed to the manager.
-    expect(authResetPasswordForEmail).toHaveBeenCalledTimes(1);
-    expect(authResetPasswordForEmail).toHaveBeenCalledWith('jordan@example.com', {
-      redirectTo: RESET_PASSWORD_DEEP_LINK,
+    // The temp password is mailed to the new user as well as returned.
+    expect(sendTempPasswordEmail).toHaveBeenCalledTimes(1);
+    expect(sendTempPasswordEmail).toHaveBeenCalledWith({
+      to: 'jordan@example.com',
+      name: 'Jordan Employee',
+      tempPassword: result.tempPassword,
+      isReset: false,
     });
-    // `inviteUserByEmail` both creates and mails, so it fails with `email_exists` for the
-    // account admin.createUser just made — and returns that error rather than throwing, so it
-    // fails silently. Using it here sent no mail at all.
+    expect(result.emailSent).toBe(true);
+
+    // Neither emailed-link call belongs in this flow any more.
     expect(authAdminInviteUserByEmail).not.toHaveBeenCalled();
+    expect(authResetPasswordForEmail).not.toHaveBeenCalled();
   });
 
   it('passes the profile fields the trigger needs via app_metadata, never user_metadata', async () => {
     authAdminCreateUser.mockResolvedValue({ data: { user: { id: 'auth-user-1' } }, error: null });
-    authResetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+
     profilesMaybeSingle.mockResolvedValue({ data: PROFILE, error: null });
 
     const { createUser } = await import('../../src/services/users.service.js');
@@ -130,27 +146,53 @@ describe('users.service.createUser', () => {
     expect(args).not.toHaveProperty('user_metadata');
   });
 
-  it('deletes the just-created auth user if the invite fails (compensating action)', async () => {
+  /**
+   * A deliberate reversal of the previous behaviour, which deleted the account when the mail
+   * failed. Email is the least reliable part of this flow — an unverified sending domain took
+   * onboarding down completely — and the manager now holds the temp password regardless, so a
+   * failed send is a degraded result, not a failed one.
+   */
+  it('keeps the account and still returns the password when the email cannot be sent', async () => {
     authAdminCreateUser.mockResolvedValue({ data: { user: { id: 'auth-user-2' } }, error: null });
     profilesMaybeSingle.mockResolvedValue({ data: { ...PROFILE, id: 'auth-user-2' }, error: null });
-    // Returned, not thrown — `resetPasswordForEmail` resolves with `{ error }`. Mocking a
-    // rejection here is what let the discarded-result bug pass this very test.
-    authResetPasswordForEmail.mockResolvedValue({ data: null, error: new Error('invite send failed') });
+    sendTempPasswordEmail.mockResolvedValue({ sent: false, error: 'The domain is not verified.' });
     authAdminDeleteUser.mockResolvedValue({ error: null });
 
     const { createUser } = await import('../../src/services/users.service.js');
+    const result = await createUser({
+      name: 'Broken Email',
+      role: 'employee',
+      locationId: 'loc-1',
+      email: 'broken@example.com',
+      createdBy: 'manager-1',
+    });
 
+    expect(result.tempPassword).toEqual(expect.any(String));
+    expect(result.emailSent).toBe(false);
+    // Surfaced verbatim so the manager is told what to fix rather than just "it didn't send".
+    expect(result.emailError).toBe('The domain is not verified.');
+    expect(authAdminDeleteUser).not.toHaveBeenCalled();
+  });
+
+  it('still deletes the auth user when the trigger produced no profile', async () => {
+    // An auth user with no profile can neither sign in usefully nor be managed, so this one
+    // really is unrecoverable and must not be left behind.
+    authAdminCreateUser.mockResolvedValue({ data: { user: { id: 'auth-user-3' } }, error: null });
+    profilesMaybeSingle.mockResolvedValue({ data: null, error: null });
+    authAdminDeleteUser.mockResolvedValue({ error: null });
+
+    const { createUser } = await import('../../src/services/users.service.js');
     await expect(
       createUser({
-        name: 'Broken Invite',
+        name: 'No Profile',
         role: 'employee',
         locationId: 'loc-1',
-        email: 'broken@example.com',
+        email: 'noprofile@example.com',
         createdBy: 'manager-1',
       }),
     ).rejects.toThrow();
 
-    expect(authAdminDeleteUser).toHaveBeenCalledWith('auth-user-2');
+    expect(authAdminDeleteUser).toHaveBeenCalledWith('auth-user-3');
   });
 
   // GoTrue reports anything the database refuses as a bare "Database error creating new user"

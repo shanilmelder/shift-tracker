@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,7 +32,14 @@ export default function LoginScreen(): React.JSX.Element {
     try {
       const session = await signIn(values.email, values.password);
       const me = await fetchMe(session.accessToken);
-      setSession({ accessToken: session.accessToken, role: me.role, profileId: me.id, locationId: me.location_id });
+      setSession({
+        accessToken: session.accessToken,
+        role: me.role,
+        profileId: me.id,
+        locationId: me.location_id,
+        // 'pending' = signed in with a temporary password. The root layout routes on this.
+        mustChangePassword: me.invite_status === 'pending',
+      });
     } catch (err) {
       setSubmitError(err instanceof ApiError ? err.message : 'Sign-in failed. Please try again.');
     }
@@ -75,9 +81,11 @@ export default function LoginScreen(): React.JSX.Element {
 
       <Button label={isSubmitting ? 'Signing in…' : 'Sign in'} onPress={handleSubmit(onSubmit)} disabled={isSubmitting} />
 
-      <Link href="/(auth)/forgot-password" style={styles.link}>
-        Forgot password?
-      </Link>
+      {/* No self-service reset: recovery is manager-issued, so the honest instruction is who
+          to ask rather than a link to a flow that no longer exists. */}
+      <Text style={styles.helpText}>
+        Forgotten your password? Ask your manager to send you a new temporary one.
+      </Text>
     </View>
   );
 }
@@ -98,6 +106,12 @@ const styles = StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.danger,
     marginBottom: theme.spacing.md,
+  },
+  helpText: {
+    ...theme.typography.caption,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.md,
+    textAlign: 'center',
   },
   link: {
     ...theme.typography.body,

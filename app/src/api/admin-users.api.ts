@@ -18,8 +18,27 @@ export interface StaffMember {
   inviteStatus: 'pending' | 'accepted';
 }
 
-export function createStaffMember(input: CreateStaffInput): Promise<StaffMember> {
-  return apiRequest<StaffMember>('/admin/users', { method: 'POST', body: input });
+/** What the API hands back once, and only once, when an account is created or reset. */
+export interface TempPasswordResult {
+  /** Never retrievable again — the server keeps only a hash. A lost one is reissued, not read. */
+  tempPassword: string;
+  emailSent: boolean;
+  /** Present only when `emailSent` is false, so the manager can be told what to fix. */
+  emailError?: string;
+}
+
+export type CreatedStaffMember = StaffMember & TempPasswordResult;
+
+export function createStaffMember(input: CreateStaffInput): Promise<CreatedStaffMember> {
+  return apiRequest<CreatedStaffMember>('/admin/users', { method: 'POST', body: input });
+}
+
+/**
+ * Issues a fresh temporary password and puts the account back into "must choose a password".
+ * This is the whole recovery path for staff — there is no self-service reset email.
+ */
+export function resetStaffPassword(id: string): Promise<TempPasswordResult> {
+  return apiRequest<TempPasswordResult>(`/admin/users/${id}/reset-password`, { method: 'POST' });
 }
 
 export interface StaffListEntry {
