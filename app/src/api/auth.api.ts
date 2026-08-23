@@ -21,8 +21,16 @@ export function signIn(email: string, password: string): Promise<SessionResponse
   return apiRequest<SessionResponse>('/auth/session', { method: 'POST', body: { email, password } });
 }
 
-// No requestPasswordReset: there is no self-service reset. A locked-out user asks a manager,
-// who issues a new temporary password (see admin-users.api.ts's resetStaffPassword).
+/**
+ * Asks the API to email a temporary password to `email`.
+ *
+ * Resolves the same way whether or not the address is registered — the API deliberately gives
+ * no signal either way, so the caller cannot use this to discover which staff emails exist.
+ * The password is never returned here; it only reaches the user's inbox.
+ */
+export function requestTempPassword(email: string): Promise<void> {
+  return apiRequest<void>('/auth/forgot-password', { method: 'POST', body: { email } });
+}
 
 export function fetchMe(overrideAccessToken?: string): Promise<MeResponse> {
   return apiRequest<MeResponse>('/auth/me', { overrideAccessToken });
