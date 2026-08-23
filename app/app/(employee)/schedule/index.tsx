@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Users } from 'lucide-react-native';
 import { theme, Button, ListRow, EmptyState, Badge } from '../../../src/components';
 import { useShiftsList } from '../../../src/queries/shifts.queries';
 import { rangeForView, groupByDay, type CalendarView } from '../../../src/lib/date-ranges';
@@ -28,6 +29,17 @@ export default function EmployeeScheduleScreen(): React.JSX.Element {
 
   return (
     <View style={styles.container}>
+      {/* This screen is the employee's OWN shifts; the roster is everyone's. Linked from here
+          because "who else is on?" is asked while looking at your own schedule. */}
+      <Pressable
+        onPress={() => router.push('/(employee)/roster')}
+        accessibilityRole="button"
+        style={({ pressed }) => [styles.rosterLink, pressed ? styles.rosterLinkPressed : null]}
+      >
+        <Users size={16} color={theme.colors.primary} />
+        <Text style={styles.rosterLinkText}>See who&apos;s working</Text>
+      </Pressable>
+
       <View style={styles.viewToggle}>
         {VIEWS.map((v) => (
           <Button
@@ -76,6 +88,16 @@ export default function EmployeeScheduleScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  rosterLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.xs,
+    minHeight: theme.minTapTarget,
+    paddingHorizontal: theme.spacing.md,
+  },
+  rosterLinkPressed: { opacity: 0.6 },
+  rosterLinkText: { ...theme.typography.label, color: theme.colors.primary },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,

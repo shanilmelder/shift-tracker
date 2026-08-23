@@ -5,6 +5,7 @@ import { theme, Card, ListRow, Button } from '../../../src/components';
 import { useSessionStore } from '../../../src/stores/session.store';
 
 const LINKS = [
+  { title: "Who's working", subtitle: 'The whole team’s schedule by day, week or month', href: '/(manager)/roster' },
   { title: 'Shift areas', subtitle: 'Manage the areas staff are assigned to', href: '/(manager)/shift-areas' },
   { title: 'Reports', subtitle: 'Ask about shifts, hours, and time off', href: '/(manager)/reports' },
   { title: 'Announcements', subtitle: 'Post updates to your team', href: '/(manager)/announcements' },
