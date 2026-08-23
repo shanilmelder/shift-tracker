@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../src/components';
 import * as openShiftsApi from '../../../src/api/open-shifts.api';
 import { usePullToRefresh } from '../../../src/hooks';
+import { openShiftsChanged } from '../../../src/queries/invalidation';
 
 /** FR-029/FR-044: the open shift board — claiming does not confirm the shift, it's provisional. */
 export default function OpenShiftsScreen(): React.JSX.Element {
@@ -13,7 +14,7 @@ export default function OpenShiftsScreen(): React.JSX.Element {
 
   const claimMutation = useMutation({
     mutationFn: openShiftsApi.claimOpenShift,
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['open-shifts'] }),
+    onSuccess: () => void openShiftsChanged(queryClient),
   });
 
   return (

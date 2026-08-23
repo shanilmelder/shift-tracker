@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, Button, TextField, DateField, ListRow, EmptyState } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
 import { usePullToRefresh } from '../../../src/hooks';
+import { availabilityChanged } from '../../../src/queries/invalidation';
 
 interface AvailabilityRow {
   id: string;
@@ -40,7 +41,7 @@ export default function AvailabilityScreen(): React.JSX.Element {
     mutationFn: () => apiRequest('/availability', { method: 'PUT', body: { rows: [...existingRows(), { recurring: false, blockedDate }] } }),
     onSuccess: () => {
       setBlockedDate('');
-      void queryClient.invalidateQueries({ queryKey: ['availability', 'mine'] });
+      void availabilityChanged(queryClient);
     },
   });
 
@@ -50,7 +51,7 @@ export default function AvailabilityScreen(): React.JSX.Element {
         method: 'PUT',
         body: { rows: [...existingRows(), { recurring: true, dayOfWeek: Number(recurringDay), startTime: recurringStart, endTime: recurringEnd }] },
       }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['availability', 'mine'] }),
+    onSuccess: () => void availabilityChanged(queryClient),
   });
 
   return (

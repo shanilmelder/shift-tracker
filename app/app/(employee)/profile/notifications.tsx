@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
 import { usePullToRefresh } from '../../../src/hooks';
+import { profileChanged } from '../../../src/queries/invalidation';
 
 interface Profile {
   notification_prefs: Record<string, boolean>;
@@ -31,7 +32,7 @@ export default function NotificationPreferencesScreen(): React.JSX.Element {
 
   const saveMutation = useMutation({
     mutationFn: (next: Record<string, boolean>) => apiRequest<Profile>('/profile', { method: 'PATCH', body: { notificationPrefs: next } }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['profile', 'mine'] }),
+    onSuccess: () => void profileChanged(queryClient),
   });
 
   function toggle(key: string, value: boolean): void {

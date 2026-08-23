@@ -6,6 +6,7 @@ import { theme, Card, Badge, Button, EmptyState, SwipeToDelete, ConfirmDialog } 
 import { listStaff, deleteStaffMember, type StaffListEntry } from '../../../src/api/admin-users.api';
 import { ApiError } from '../../../src/types/api/common';
 import { usePullToRefresh } from '../../../src/hooks';
+import { staffChanged } from '../../../src/queries/invalidation';
 
 /** Manager "Team" tab: everyone at the manager's location (doc/design's Prototype.dc.html). */
 export default function StaffListScreen(): React.JSX.Element {
@@ -21,7 +22,7 @@ export default function StaffListScreen(): React.JSX.Element {
     mutationFn: deleteStaffMember,
     onSuccess: () => {
       setDeleteError(null);
-      void queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      void staffChanged(queryClient);
     },
     // Refused (409) for anyone with shifts, timesheets or requests on record — the message
     // names what is blocking it and points at deactivating instead.

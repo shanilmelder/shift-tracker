@@ -13,6 +13,7 @@ import {
 } from '../../../../src/api/admin-users.api';
 import { usePullToRefresh } from '../../../../src/hooks';
 import { ApiError } from '../../../../src/types/api/common';
+import { staffChanged } from '../../../../src/queries/invalidation';
 
 /**
  * Manager-side edit of one staff member's profile (FR-005): the fields a manager owns —
@@ -60,7 +61,7 @@ export default function EditStaffScreen(): React.JSX.Element {
   }, [staff?.id, staff?.name, staff?.phone, staff?.job_role, staff?.pay_rate, staff?.role]);
 
   function invalidate(): void {
-    void queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    void staffChanged(queryClient);
   }
 
   function describe(err: unknown, fallback: string): string {

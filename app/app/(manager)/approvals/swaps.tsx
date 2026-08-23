@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../src/components';
 import { decideSwapRequest, listLocationSwapRequests } from '../../../src/api/swap-requests.api';
 import { usePullToRefresh } from '../../../src/hooks';
+import { swapsChanged } from '../../../src/queries/invalidation';
 
 /**
  * Manager approvals queue for swap requests (FR-030). Note this same decide action is
@@ -29,7 +30,7 @@ export default function SwapApprovalsScreen(): React.JSX.Element {
   // API already accepts one (see swap-requests.api.ts's decideSwapRequest signature).
   const decideMutation = useMutation({
     mutationFn: ({ id, approve }: { id: string; approve: boolean }) => decideSwapRequest(id, approve),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['swap-requests', 'pending-approval'] }),
+    onSuccess: () => void swapsChanged(queryClient),
   });
 
   return (

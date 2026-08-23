@@ -1,6 +1,7 @@
 import EventSource from 'react-native-sse';
 import type { QueryClient } from '@tanstack/react-query';
 import { API_BASE_URL } from '../api/client';
+import { shiftsChanged, swapsChanged, timeOffChanged, openShiftsChanged } from '../queries/invalidation';
 
 /** Mirrors contracts/realtime-events.md's event name list — the type parameter to
  * EventSource<E> is what makes `addEventListener` accept these custom names below. */
@@ -33,22 +34,20 @@ export function connectRealtimeStream(accessToken: string, queryClient: QueryCli
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
-  const invalidate = (queryKey: unknown[]) => void queryClient.invalidateQueries({ queryKey });
-
-  es.addEventListener('shift.assigned', () => invalidate(['shifts', 'list']));
-  es.addEventListener('shift.changed', (event) => {
-    invalidate(['shifts', 'list']);
-    const data = event.data ? (JSON.parse(event.data) as { shiftId: string }) : null;
-    if (data) invalidate(['shifts', 'detail', data.shiftId]);
-  });
-  es.addEventListener('shift.cancelled', () => invalidate(['shifts', 'list']));
-  es.addEventListener('shift.deleted', () => invalidate(['shifts', 'list']));
-  es.addEventListener('swap.status_changed', () => invalidate(['swap-requests', 'mine']));
-  es.addEventListener('time_off.status_changed', () => invalidate(['time-off-requests', 'mine']));
-  es.addEventListener('open_shift.posted', () => invalidate(['open-shifts']));
-  es.addEventListener('open_shift.claimed', () => invalidate(['open-shift-claims']));
-  es.addEventListener('open_shift.confirmed', () => invalidate(['open-shifts']));
-  es.addEventListener('announcement.new', () => invalidate(['announcements', 'mine']));
+  // Routed through the same helpers the mutations use (src/queries/invalidation.ts), so a
+  // change arriving over the stream refreshes exactly what a locally-made one would. These
+  // used to name one narrow key each — 'swap.status_changed' refreshed only the employee's own
+  // swap list, for instance, leaving the manager's queue and the dashboard stale.
+  es.addEventListener('shift.assigned', () => shiftsChanged(queryClient));
+  es.addEventListener('shift.changed', () => shiftsChanged(queryClient));
+  es.addEventListener('shift.cancelled', () => shiftsChanged(queryClient));
+  es.addEventListener('shift.deleted', () => shiftsChanged(queryClient));
+  es.addEventListener('swap.status_changed', () => swapsChanged(queryClient));
+  es.addEventListener('time_off.status_changed', () => timeOffChanged(queryClient));
+  es.addEventListener('open_shift.posted', () => openShiftsChanged(queryClient));
+  es.addEventListener('open_shift.claimed', () => openShiftsChanged(queryClient));
+  es.addEventListener('open_shift.confirmed', () => openShiftsChanged(queryClient));
+  es.addEventListener('announcement.new', () => void queryClient.invalidateQueries({ queryKey: ['announcements'] }));
 
   return () => es.close();
 }
