@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, Card, Badge, EmptyState, Button, ListRow } from '../../../src/components';
 import { useShiftDetail } from '../../../src/queries/shifts.queries';
 import { listEligibleCoworkers, createSwapRequest, type EligibleCoworker } from '../../../src/api/swap-requests.api';
 import { ApiError } from '../../../src/types/api/common';
 import type { ShiftAssignment } from '../../../src/types/api/shifts';
 import { usePullToRefresh } from '../../../src/hooks';
+import { swapsChanged } from '../../../src/queries/invalidation';
 
 /** Shift detail (FR-015): time, location/area, role, and notes. */
 export default function ShiftDetailScreen(): React.JSX.Element {
   const { shiftId } = useLocalSearchParams<{ shiftId: string }>();
+  const queryClient = useQueryClient();
   const { data: shift, isLoading, isError, refetch: refetchShift } = useShiftDetail(shiftId);
   const [showSwapPicker, setShowSwapPicker] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -29,6 +31,9 @@ export default function ShiftDetailScreen(): React.JSX.Element {
     onSuccess: (_result, coworker) => {
       setSwapError(null);
       setSentTo(coworker.name);
+      // Nothing was invalidated here before, so a newly sent request did not appear on the
+      // employee's own swaps list, nor anywhere else, until its cache went stale.
+      swapsChanged(queryClient);
     },
     // Without this the request failed in complete silence — the button did nothing and no swap
     // was ever created, which read as "swaps are broken" rather than as a rejected request.

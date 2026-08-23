@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../src/components';
 import * as timeOffApi from '../../../src/api/time-off-requests.api';
 import { usePullToRefresh } from '../../../src/hooks';
+import { timeOffChanged } from '../../../src/queries/invalidation';
 
 /** FR-030: manager reviews time-off requests, approve/deny (optional comment: see Phase 7's tracked polish note — same gap applies here). */
 export default function TimeOffApprovalsScreen(): React.JSX.Element {
@@ -16,7 +17,7 @@ export default function TimeOffApprovalsScreen(): React.JSX.Element {
 
   const decideMutation = useMutation({
     mutationFn: ({ id, approve }: { id: string; approve: boolean }) => timeOffApi.decideTimeOffRequest(id, approve),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['time-off-requests', 'pending-approval'] }),
+    onSuccess: () => void timeOffChanged(queryClient),
   });
 
   return (

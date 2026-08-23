@@ -7,6 +7,7 @@ import { apiRequest } from '../../../../src/api/client';
 import { listAssignments, replaceStaffing, type StaffingConflictDetail } from '../../../../src/api/shift-assignments.api';
 import { ApiError } from '../../../../src/types/api/common';
 import { usePullToRefresh } from '../../../../src/hooks';
+import { shiftsChanged } from '../../../../src/queries/invalidation';
 
 interface StaffMemberSummary {
   id: string;
@@ -59,9 +60,7 @@ export default function StaffShiftScreen(): React.JSX.Element {
     onSuccess: () => {
       setConflicts(null);
       setSubmitError(null);
-      void queryClient.invalidateQueries({ queryKey: ['shift-assignments', shiftId] });
-      void queryClient.invalidateQueries({ queryKey: ['shifts', 'detail', shiftId] });
-      void queryClient.invalidateQueries({ queryKey: ['shifts', 'list'] });
+      shiftsChanged(queryClient);
       // Staffing is the last step of the build flow, so a successful save returns to Build
       // rather than leaving the manager on a screen they're finished with. `replace`, not
       // `push`/`back`: this screen is reachable both from the create flow and from the

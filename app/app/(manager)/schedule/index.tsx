@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, FlatList, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { theme, Button, DateField, TextField, ListRow, Badge, EmptyState, Card, ConfirmDialog, SwipeToDelete } from '../../../src/components';
@@ -10,6 +10,7 @@ import { apiRequest } from '../../../src/api/client';
 import * as templatesApi from '../../../src/api/shift-templates.api';
 import { usePullToRefresh } from '../../../src/hooks';
 import { ApiError } from '../../../src/types/api/common';
+import { shiftsChanged, shiftTemplatesChanged } from '../../../src/queries/invalidation';
 
 interface ShiftArea {
   id: string;
@@ -95,9 +96,9 @@ function CreateTab({ onCreated }: { onCreated: () => void }): React.JSX.Element 
     mutationFn: templatesApi.deleteShiftTemplate,
     onSuccess: () => {
       setDeleteError(null);
-      void queryClient.invalidateQueries({ queryKey: ['shift-templates'] });
+      shiftTemplatesChanged(queryClient);
       // The cascade removed dated shifts, so the schedule list is stale too.
-      void queryClient.invalidateQueries({ queryKey: ['shifts', 'list'] });
+      shiftsChanged(queryClient);
     },
     onError: (err) => {
       // The API refuses when any generated shift already has clock-in records.
@@ -314,13 +315,16 @@ function ExistingShiftsList({ router }: { router: ReturnType<typeof useRouter> }
   return (
     <>
       {deleteError ? <Text style={styles.error}>{deleteError}</Text> : null}
-      <FlatList
-        refreshControl={refreshControl}
-        data={[...shifts].sort((a, b) => a.start_time.localeCompare(b.start_time))}
-        keyExtractor={(shift) => shift.id}
-        scrollEnabled={false}
-        renderItem={({ item: shift }) => (
-          <SwipeToDelete onDelete={() => setPendingDelete(shift)} accessibilityLabel={shift.name}>
+      {/* Mapped rather than a FlatList: this renders inside AssignTab's ScrollView, and React
+          Native warns that a VirtualizedList nested in a ScrollView of the same orientation has
+          its windowing broken. It was already `scrollEnabled={false}`, so every row rendered
+          anyway and there was no virtualization to lose — and the `refreshControl` it carried
+          was inert for the same reason, since a non-scrolling list can never be pulled. The
+          outer ScrollView already owns pull-to-refresh. */}
+      {[...shifts]
+        .sort((a, b) => a.start_time.localeCompare(b.start_time))
+        .map((shift) => (
+          <SwipeToDelete key={shift.id} onDelete={() => setPendingDelete(shift)} accessibilityLabel={shift.name}>
             <ListRow
               title={shift.name}
               subtitle={`${new Date(shift.start_time).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric' })} · ${new Date(shift.start_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} – ${new Date(shift.end_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`}
@@ -328,8 +332,7 @@ function ExistingShiftsList({ router }: { router: ReturnType<typeof useRouter> }
               right={<Badge label={shift.status} tone={shift.status === 'draft' ? 'warning' : 'neutral'} />}
             />
           </SwipeToDelete>
-        )}
-      />
+        ))}
 
       <ConfirmDialog
         visible={pendingDelete !== null}

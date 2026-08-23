@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Button, EmptyState } from '../../../../src/components';
 import * as openShiftsApi from '../../../../src/api/open-shifts.api';
 import { usePullToRefresh } from '../../../../src/hooks';
+import { openShiftsChanged } from '../../../../src/queries/invalidation';
 
 /**
  * FR-046: shows ALL claimants with no ordering that implies priority — the manager may
@@ -23,8 +24,7 @@ export default function OpenShiftClaimsScreen(): React.JSX.Element {
   const confirmMutation = useMutation({
     mutationFn: (claimId: string) => openShiftsApi.confirmClaim(shiftId, claimId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['open-shift-claims', shiftId] });
-      void queryClient.invalidateQueries({ queryKey: ['shifts', 'list'] });
+      openShiftsChanged(queryClient);
     },
   });
 

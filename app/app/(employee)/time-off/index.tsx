@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, FlatList, ScrollView, StyleSheet } from 'react-native';
+import { Text, ScrollView, StyleSheet } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { theme, Button, TextField, DateField, ListRow, Badge, EmptyState } from 
 import * as timeOffApi from '../../../src/api/time-off-requests.api';
 import { ApiError } from '../../../src/types/api/common';
 import { usePullToRefresh } from '../../../src/hooks';
+import { timeOffChanged } from '../../../src/queries/invalidation';
 
 const TimeOffSchema = z.object({
   startDate: z.string().min(1, 'Start date is required (YYYY-MM-DD)'),
@@ -35,7 +36,7 @@ export default function TimeOffScreen(): React.JSX.Element {
     try {
       await timeOffApi.createTimeOffRequest(values);
       reset();
-      void queryClient.invalidateQueries({ queryKey: ['time-off-requests', 'mine'] });
+      void timeOffChanged(queryClient);
     } catch (err) {
       setSubmitError(err instanceof ApiError ? err.message : 'Could not submit your request. Please try again.');
     }
@@ -75,17 +76,17 @@ export default function TimeOffScreen(): React.JSX.Element {
       {!requests || requests.length === 0 ? (
         <EmptyState title="No requests yet" />
       ) : (
-        <FlatList
-          data={requests}
-          keyExtractor={(r) => r.id}
-          renderItem={({ item }) => (
-            <ListRow
-              title={`${item.start_date} – ${item.end_date}`}
-              subtitle={item.reason}
-              right={<Badge label={item.status} tone={item.status === 'approved' ? 'success' : item.status === 'denied' ? 'danger' : 'warning'} />}
-            />
-          )}
-        />
+        // Mapped, not a FlatList. This sits inside the ScrollView above, and a VirtualizedList
+        // nested in a ScrollView of the same orientation has its windowing broken anyway — React
+        // Native warns about exactly this. Nothing is lost: everything rendered regardless.
+        requests.map((item) => (
+          <ListRow
+            key={item.id}
+            title={`${item.start_date} – ${item.end_date}`}
+            subtitle={item.reason}
+            right={<Badge label={item.status} tone={item.status === 'approved' ? 'success' : item.status === 'denied' ? 'danger' : 'warning'} />}
+          />
+        ))
       )}
     </ScrollView>
   );

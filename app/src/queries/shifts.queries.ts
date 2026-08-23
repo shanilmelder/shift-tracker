@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as shiftsApi from '../api/shifts.api';
+import { shiftsChanged } from './invalidation';
 
 export const shiftKeys = {
   list: (params: shiftsApi.ListShiftsParams) => ['shifts', 'list', params] as const,
@@ -33,7 +34,7 @@ export function useCreateShift() {
   return useMutation({
     mutationFn: shiftsApi.createShift,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['shifts', 'list'] });
+      shiftsChanged(queryClient);
     },
   });
 }
@@ -43,8 +44,7 @@ export function useUpdateShift(shiftId: string) {
   return useMutation({
     mutationFn: (input: shiftsApi.UpdateShiftInput) => shiftsApi.updateShift(shiftId, input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: shiftKeys.detail(shiftId) });
-      void queryClient.invalidateQueries({ queryKey: ['shifts', 'list'] });
+      shiftsChanged(queryClient);
     },
   });
 }
@@ -57,8 +57,7 @@ export function useDeleteShift() {
       // The detail entry is removed rather than invalidated: the shift no longer exists, so a
       // refetch would only 404. The list is invalidated so the row disappears.
       queryClient.removeQueries({ queryKey: shiftKeys.detail(shiftId) });
-      void queryClient.invalidateQueries({ queryKey: ['shifts', 'list'] });
-      void queryClient.invalidateQueries({ queryKey: ['shift-assignments', shiftId] });
+      shiftsChanged(queryClient);
     },
   });
 }

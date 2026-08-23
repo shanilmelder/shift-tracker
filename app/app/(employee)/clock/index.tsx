@@ -10,6 +10,7 @@ import { generateIdempotencyKey } from '../../../src/offline/idempotency';
 import { useAppStore } from '../../../src/stores/app.store';
 import { ApiError } from '../../../src/types/api/common';
 import { usePullToRefresh } from '../../../src/hooks';
+import { timeEntriesChanged } from '../../../src/queries/invalidation';
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -73,7 +74,7 @@ export default function ClockScreen(): React.JSX.Element {
         idempotencyKey: generateIdempotencyKey(),
       });
     },
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['time-entries', 'mine'] }),
+    onSuccess: () => void timeEntriesChanged(queryClient),
     onError: (err) => setError(err instanceof ApiError ? err.message : 'Could not clock in — it will retry automatically once online.'),
   });
 
@@ -87,7 +88,7 @@ export default function ClockScreen(): React.JSX.Element {
         idempotencyKey: generateIdempotencyKey(),
       });
     },
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['time-entries', 'mine'] }),
+    onSuccess: () => void timeEntriesChanged(queryClient),
     onError: (err) => setError(err instanceof ApiError ? err.message : 'Could not clock out — it will retry automatically once online.'),
   });
 
@@ -233,11 +234,11 @@ function ElapsedAndBreak({ entry }: { entry: timeEntriesApi.TimeEntry }): React.
 
   const startBreakMutation = useMutation({
     mutationFn: () => timeEntriesApi.startBreak(entry.id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['time-entries', 'mine'] }),
+    onSuccess: () => void timeEntriesChanged(queryClient),
   });
   const endBreakMutation = useMutation({
     mutationFn: () => timeEntriesApi.endBreak(entry.id),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['time-entries', 'mine'] }),
+    onSuccess: () => void timeEntriesChanged(queryClient),
   });
   const breakMutationPending = startBreakMutation.isPending || endBreakMutation.isPending;
 

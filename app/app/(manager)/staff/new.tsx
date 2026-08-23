@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { theme, Button, TextField, TempPasswordNotice } from '../../../src/components';
 import { createStaffMember, type CreatedStaffMember } from '../../../src/api/admin-users.api';
 import { useSessionStore } from '../../../src/stores/session.store';
+import { staffChanged } from '../../../src/queries/invalidation';
 import { ApiError } from '../../../src/types/api/common';
 
 const CreateStaffSchema = z.object({
@@ -28,6 +30,7 @@ type CreateStaffForm = z.infer<typeof CreateStaffSchema>;
  */
 export default function NewStaffScreen(): React.JSX.Element {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const locationId = useSessionStore((state) => state.locationId);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedStaffMember | null>(null);
@@ -50,6 +53,9 @@ export default function NewStaffScreen(): React.JSX.Element {
       // Deliberately does NOT navigate away: the temp password is readable only in this
       // response, so leaving immediately would discard the one copy that exists.
       setCreated(await createStaffMember({ ...values, locationId }));
+      // Nothing was invalidated here before, so going back to the Team list showed a cache
+      // without the person just created until it happened to go stale on its own.
+      staffChanged(queryClient);
     } catch (err) {
       setSubmitError(err instanceof ApiError ? err.message : 'Could not create the account. Please try again.');
     }

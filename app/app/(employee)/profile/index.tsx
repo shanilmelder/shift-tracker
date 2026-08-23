@@ -5,6 +5,7 @@ import { theme, Button, TextField } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
 import { useSessionStore } from '../../../src/stores/session.store';
 import { usePullToRefresh } from '../../../src/hooks';
+import { profileChanged } from '../../../src/queries/invalidation';
 
 interface Profile {
   id: string;
@@ -35,7 +36,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
   const saveMutation = useMutation({
     mutationFn: () => apiRequest<Profile>('/profile', { method: 'PATCH', body: { name, phone } }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['profile', 'mine'] }),
+    onSuccess: () => void profileChanged(queryClient),
   });
 
   return (

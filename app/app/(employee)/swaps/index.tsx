@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, ListRow, Badge, Button, EmptyState } from '../../../src/components';
 import { listMySwapRequests, respondToSwapRequest, type SwapRequest } from '../../../src/api/swap-requests.api';
 import { usePullToRefresh } from '../../../src/hooks';
+import { swapsChanged } from '../../../src/queries/invalidation';
 
 const STATUS_TONE = {
   pending: 'warning',
@@ -23,7 +24,7 @@ export default function SwapsScreen(): React.JSX.Element {
 
   const respondMutation = useMutation({
     mutationFn: ({ id, accept }: { id: string; accept: boolean }) => respondToSwapRequest(id, accept),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['swap-requests', 'mine'] }),
+    onSuccess: () => void swapsChanged(queryClient),
   });
 
   return (

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { theme, Button, TextField, ListRow, EmptyState, ConfirmDialog, SwipeToDelete } from '../../../src/components';
 import { apiRequest } from '../../../src/api/client';
 import { usePullToRefresh } from '../../../src/hooks';
+import { shiftAreasChanged } from '../../../src/queries/invalidation';
 
 interface ShiftArea {
   id: string;
@@ -27,7 +28,7 @@ export default function ShiftAreasScreen(): React.JSX.Element {
     mutationFn: (name: string) => apiRequest<ShiftArea>('/shift-areas', { method: 'POST', body: { name } }),
     onSuccess: () => {
       setNewName('');
-      void queryClient.invalidateQueries({ queryKey: ['shift-areas'] });
+      void shiftAreasChanged(queryClient);
     },
   });
 
@@ -35,7 +36,7 @@ export default function ShiftAreasScreen(): React.JSX.Element {
     mutationFn: (id: string) => apiRequest<void>(`/shift-areas/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
       setPendingDeleteId(null);
-      void queryClient.invalidateQueries({ queryKey: ['shift-areas'] });
+      void shiftAreasChanged(queryClient);
     },
   });
 
