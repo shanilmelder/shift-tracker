@@ -8,6 +8,7 @@ import {
   setUserActiveHandler,
   deactivateUserHandler,
   deleteUserHandler,
+  resetUserPasswordHandler,
 } from '../controllers/admin-users.controller.js';
 
 /**
@@ -23,6 +24,8 @@ export async function adminUsersRoutes(app: FastifyInstance): Promise<void> {
   app.patch('/v1/admin/users/:id', { preHandler: requireManager }, updateUserHandler);
   app.post('/v1/admin/users/:id/deactivate', { preHandler: requireManager }, deactivateUserHandler);
   app.post('/v1/admin/users/:id/active', { preHandler: requireManager }, setUserActiveHandler);
+  // The password-recovery path for staff, replacing the self-service emailed reset link.
+  app.post('/v1/admin/users/:id/reset-password', { preHandler: requireManager }, resetUserPasswordHandler);
   // Hard delete, refused for anyone with history -- deactivation is the path for those.
   app.delete('/v1/admin/users/:id', { preHandler: requireManager }, deleteUserHandler);
 }

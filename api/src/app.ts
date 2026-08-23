@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import { env } from './config/env.js';
 import { authMiddleware } from './middleware/auth.middleware.js';
+import { requirePasswordChange } from './middleware/require-password-change.middleware.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { adminUsersRoutes } from './routes/admin-users.routes.js';
 import { shiftsRoutes } from './routes/shifts.routes.js';
@@ -35,7 +36,7 @@ import { hasApprovedTimeOff } from './services/time-off.service.js';
  * There is deliberately no sign-up route in this list, or anywhere in this codebase — account
  * creation is manager-only (FR-002/FR-005), enforced by never wiring such a route at all.
  */
-const PUBLIC_ROUTES = new Set<string>(['POST /v1/auth/session', 'POST /v1/auth/password-reset']);
+const PUBLIC_ROUTES = new Set<string>(['POST /v1/auth/session']);
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -56,6 +57,10 @@ export async function buildApp(): Promise<FastifyInstance> {
       return;
     }
     await authMiddleware(request, reply);
+    // Only if authMiddleware let the request through — it sends its own 401/403 and, once a
+    // reply has been sent, `request.caller` is unset and there is nothing left to gate.
+    if (reply.sent) return;
+    await requirePasswordChange(request, reply);
   });
 
   app.get('/health', async () => ({ status: 'ok' }));

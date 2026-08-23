@@ -72,7 +72,7 @@ describe('swaps.service.decide', () => {
 
     const { decideSwapRequest } = await import('../../src/services/swaps.service.js');
     const result = await decideSwapRequest(
-      { id: 'leader-1', role: 'employee', locationId: 'loc-1', name: 'Leader', isActive: true },
+      { id: 'leader-1', role: 'employee', locationId: 'loc-1', name: 'Leader', isActive: true, mustChangePassword: false },
       'swap-1',
       { approve: true },
     );
@@ -90,7 +90,7 @@ describe('swaps.service.decide', () => {
     const { decideSwapRequest } = await import('../../src/services/swaps.service.js');
 
     await expect(
-      decideSwapRequest({ id: 'not-the-leader', role: 'employee', locationId: 'loc-1', name: 'X', isActive: true }, 'swap-2', {
+      decideSwapRequest({ id: 'not-the-leader', role: 'employee', locationId: 'loc-1', name: 'X', isActive: true, mustChangePassword: false }, 'swap-2', {
         approve: true,
       }),
     ).rejects.toThrow(/not authorized/i);
@@ -106,7 +106,7 @@ describe('swaps.service.decide', () => {
 
     const { decideSwapRequest } = await import('../../src/services/swaps.service.js');
     const result = await decideSwapRequest(
-      { id: 'manager-1', role: 'manager', locationId: 'loc-1', name: 'Manager', isActive: true },
+      { id: 'manager-1', role: 'manager', locationId: 'loc-1', name: 'Manager', isActive: true, mustChangePassword: false },
       'swap-3',
       { approve: true },
     );

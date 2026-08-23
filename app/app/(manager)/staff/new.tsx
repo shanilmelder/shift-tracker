@@ -4,8 +4,8 @@ import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { theme, Button, TextField } from '../../../src/components';
-import { createStaffMember } from '../../../src/api/admin-users.api';
+import { theme, Button, TextField, TempPasswordNotice } from '../../../src/components';
+import { createStaffMember, type CreatedStaffMember } from '../../../src/api/admin-users.api';
 import { useSessionStore } from '../../../src/stores/session.store';
 import { ApiError } from '../../../src/types/api/common';
 
@@ -19,14 +19,18 @@ const CreateStaffSchema = z.object({
 type CreateStaffForm = z.infer<typeof CreateStaffSchema>;
 
 /**
- * Step in the closed-account model (FR-004): a manager enters a new person's details and an
- * invite is sent for them to set their own password (FR-007) — this screen never collects or
- * displays a password.
+ * Step in the closed-account model (FR-004): a manager enters a new person's details, and the
+ * API provisions the account with a generated temporary password (FR-007).
+ *
+ * The manager never chooses that password — it is generated server-side — but they are shown it
+ * once, here, so onboarding does not depend on email arriving. The new starter is made to
+ * replace it the first time they sign in.
  */
 export default function NewStaffScreen(): React.JSX.Element {
   const router = useRouter();
   const locationId = useSessionStore((state) => state.locationId);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [created, setCreated] = useState<CreatedStaffMember | null>(null);
   const {
     control,
     handleSubmit,
@@ -43,18 +47,35 @@ export default function NewStaffScreen(): React.JSX.Element {
       return;
     }
     try {
-      await createStaffMember({ ...values, locationId });
-      router.back();
+      // Deliberately does NOT navigate away: the temp password is readable only in this
+      // response, so leaving immediately would discard the one copy that exists.
+      setCreated(await createStaffMember({ ...values, locationId }));
     } catch (err) {
       setSubmitError(err instanceof ApiError ? err.message : 'Could not create the account. Please try again.');
     }
+  }
+
+  if (created) {
+    return (
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Account created</Text>
+        <Text style={styles.hint}>{created.name} can sign in with the password below.</Text>
+        <TempPasswordNotice
+          name={created.name}
+          tempPassword={created.tempPassword}
+          emailSent={created.emailSent}
+          emailError={created.emailError}
+        />
+        <Button label="Done" onPress={() => router.back()} style={styles.done} />
+      </ScrollView>
+    );
   }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Add staff member</Text>
       <Text style={styles.hint}>
-        They'll receive an email invite to set their own password — no password is created here.
+        A temporary password is generated for them and emailed over. You&apos;ll see it here too, once.
       </Text>
 
       <Controller
@@ -118,7 +139,7 @@ export default function NewStaffScreen(): React.JSX.Element {
 
       {submitError ? <Text style={styles.submitError}>{submitError}</Text> : null}
 
-      <Button label={isSubmitting ? 'Creating…' : 'Send invite'} onPress={handleSubmit(onSubmit)} disabled={isSubmitting} />
+      <Button label={isSubmitting ? 'Creating…' : 'Create account'} onPress={handleSubmit(onSubmit)} disabled={isSubmitting} />
     </ScrollView>
   );
 }
@@ -150,5 +171,8 @@ const styles = StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.danger,
     marginBottom: theme.spacing.md,
+  },
+  done: {
+    marginTop: theme.spacing.lg,
   },
 });

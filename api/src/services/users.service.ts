@@ -6,7 +6,8 @@ import {
   countActiveManagers,
   type ProfileRow,
 } from '../data/profiles.repo.js';
-import { RESET_PASSWORD_DEEP_LINK } from '../config/app-links.js';
+import { generateTempPassword } from '../lib/temp-password.js';
+import { sendTempPasswordEmail } from './email.service.js';
 
 /**
  * GoTrue collapses anything a trigger or constraint raises on `auth.users` into one opaque
@@ -66,6 +67,19 @@ export interface CreatedUser {
   role: 'employee' | 'manager';
   locationId: string;
   inviteStatus: 'pending' | 'accepted';
+  /**
+   * Returned to the creating manager exactly once, in this response, and never stored or
+   * readable again. Supabase only keeps the hash, so a lost one is reissued, not recovered.
+   *
+   * Shown even when the email went out: mail is the part of this flow that fails (unverified
+   * domains, bounces, spam folders), and a manager who can read the password to someone is
+   * the difference between onboarding working and being stuck.
+   */
+  tempPassword: string;
+  /** False when the email could not be sent — the manager then has to pass it on themselves. */
+  emailSent: boolean;
+  /** Why the email failed, for the manager to act on. Absent when it sent. */
+  emailError?: string;
 }
 
 /**
@@ -84,9 +98,15 @@ export interface CreatedUser {
  * their own token, so role and location must not come from it.
  */
 export async function createUser(input: CreateUserInput): Promise<CreatedUser> {
+  const tempPassword = generateTempPassword();
+
   const { data: authResult, error: authError } = await supabase.auth.admin.createUser({
     email: input.email,
-    email_confirm: false,
+    password: tempPassword,
+    // Confirmed outright: the account is provisioned by a manager who already knows who this
+    // person is, and there is no confirmation link in this flow to click. Left false, GoTrue
+    // refuses the password sign-in that is the whole point of the temp password.
+    email_confirm: true,
     app_metadata: {
       name: input.name,
       role: input.role,
@@ -113,30 +133,62 @@ export async function createUser(input: CreateUserInput): Promise<CreatedUser> {
     const profile = await findProfileById(authUserId);
     if (!profile) throw new Error('Profile was not created for the new auth user');
 
-    // Send the account's first-access email (FR-007) so the new user sets their own password —
-    // this flow intentionally never has a password to hand back to the manager.
-    //
-    // NOT `admin.inviteUserByEmail`: that call both creates a user and mails them, so it only
-    // works for an address with no account yet. The account already exists here — the
-    // `createUser` above just made it, because the profile trigger needs `app_metadata` set at
-    // insert time — so inviting always came back `email_exists` and no mail was ever sent.
-    // A recovery mail carries the same "set your password" link to the same deep link, and is
-    // what scripts/resend-invite.ts already falls back to for exactly this reason.
-    const { error: inviteError } = await supabase.auth.resetPasswordForEmail(input.email, {
-      redirectTo: RESET_PASSWORD_DEEP_LINK,
+    // Best-effort, and deliberately NOT a reason to fail the create: the account is already
+    // valid and the manager is handed the password below either way. Rolling back here is what
+    // made an unverified email domain look like "user creation is broken".
+    const emailResult = await sendTempPasswordEmail({
+      to: input.email,
+      name: input.name,
+      tempPassword,
+      isReset: false,
     });
-    // Checked, not discarded: this returns `{ error }` rather than throwing, so ignoring the
-    // result is what let a failed send pass for a successful account creation.
-    if (inviteError) throw inviteError;
 
-    return toCreatedUser(profile);
+    return { ...toCreatedUser(profile), tempPassword, emailSent: emailResult.sent, ...(emailResult.error ? { emailError: emailResult.error } : {}) };
   } catch (err) {
-    // Reached when the profile is missing or the first-access email could not be sent:
-    // deleting the auth user cascades the profile away with it, leaving nothing behind for
-    // the manager to retry around.
+    // Now only reachable when the trigger did not produce a profile — an account that exists
+    // in auth but has no profile can neither sign in usefully nor be managed, so it is removed
+    // rather than left behind. Deleting the auth user cascades the profile away with it.
     await supabase.auth.admin.deleteUser(authUserId);
     throw err;
   }
+}
+
+/**
+ * Issues a fresh temporary password for an existing account and puts it back into the
+ * "must choose a password" state.
+ *
+ * This is the whole password-recovery story for staff: there is no emailed reset link, so a
+ * locked-out employee asks a manager, who does this. That trade is deliberate — it removes the
+ * app's dependency on deep links entirely, at the cost of self-service recovery out of hours.
+ */
+export async function issueTempPassword(
+  callerId: string,
+  id: string,
+): Promise<{ ok: true; tempPassword: string; emailSent: boolean; emailError?: string; profile: ProfileRow } | { ok: false; reason: 'not_found' }> {
+  const existing = await findProfileById(id);
+  if (!existing) return { ok: false, reason: 'not_found' };
+
+  const tempPassword = generateTempPassword();
+  const { error } = await supabase.auth.admin.updateUserById(id, { password: tempPassword });
+  if (error) throw error;
+
+  // Back to 'pending', which is what forces the change-password prompt on next sign-in. Without
+  // this the user could keep using the manager-known temp password indefinitely.
+  const profile = await updateProfile(id, { invite_status: 'pending' });
+
+  const { data: authUser } = await supabase.auth.admin.getUserById(id);
+  const email = authUser?.user?.email;
+  const emailResult = email
+    ? await sendTempPasswordEmail({ to: email, name: existing.name, tempPassword, isReset: true })
+    : { sent: false, error: 'This account has no email address on file.' };
+
+  return {
+    ok: true,
+    tempPassword,
+    emailSent: emailResult.sent,
+    ...(emailResult.error ? { emailError: emailResult.error } : {}),
+    profile,
+  };
 }
 
 export async function deactivateUser(id: string): Promise<ProfileRow> {
@@ -225,7 +277,7 @@ export async function deleteUser(callerId: string, id: string): Promise<DeleteUs
   return { ok: true };
 }
 
-function toCreatedUser(profile: ProfileRow): CreatedUser {
+function toCreatedUser(profile: ProfileRow): Omit<CreatedUser, 'tempPassword' | 'emailSent' | 'emailError'> {
   return {
     id: profile.id,
     name: profile.name,

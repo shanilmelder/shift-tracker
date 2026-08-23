@@ -9,3 +9,4 @@ export * from './ConfirmDialog';
 export * from './EmptyState';
 export * from './SwipeToDelete';
 export * from './TabBar';
+export * from './TempPasswordNotice';

@@ -33,6 +33,24 @@ const EnvSchema = z.object({
   OLLAMA_MODEL: z.string().min(1).default('gpt-oss:120b-cloud'),
   /** Only needed when OLLAMA_BASE_URL points at a host that authenticates (e.g. ollama.com). */
   OLLAMA_API_KEY: z.string().min(1).optional(),
+
+  /**
+   * Transactional email, used to send a new user their temporary password. Sent through
+   * Resend's HTTP API directly rather than Supabase Auth, whose templates cannot carry a
+   * generated credential.
+   *
+   * Both are optional: without them the API still creates accounts and still returns the temp
+   * password to the manager, it just cannot mail it. That is deliberate — losing email must
+   * not make onboarding impossible.
+   *
+   * RESEND_FROM must be on a domain verified at resend.com/domains. Until one is, Resend
+   * refuses to send to anyone but the account owner's own address.
+   */
+  RESEND_API_KEY: z.string().min(1).optional(),
+  RESEND_FROM: z.string().min(1).optional(),
+  /** Shown in the email so the recipient knows which app it is about. */
+  APP_NAME: z.string().min(1).default('Shift Tracker'),
+
 });
 
 export type Env = z.infer<typeof EnvSchema>;

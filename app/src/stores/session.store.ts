@@ -10,6 +10,9 @@ interface PersistedSession {
   role: CallerRole;
   profileId: string;
   locationId: string;
+  /** Signed in, but still on a manager-issued temporary password: the router sends them to the
+   * change-password screen and the API refuses everything else until it is cleared. */
+  mustChangePassword: boolean;
 }
 
 export interface SessionState {
@@ -17,9 +20,12 @@ export interface SessionState {
   role: CallerRole | null;
   profileId: string | null;
   locationId: string | null;
+  mustChangePassword: boolean;
   /** True once `hydrate()` has resolved — the root layout waits on this before deciding where to route, so it never redirects to (auth) just because SecureStore hasn't been read yet. */
   hydrated: boolean;
   setSession: (session: PersistedSession) => void;
+  /** Called once the user has chosen their own password, lifting the routing block. */
+  clearPasswordChangeRequirement: () => void;
   clearSession: () => void;
   hydrate: () => Promise<void>;
 }
@@ -36,6 +42,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   role: null,
   profileId: null,
   locationId: null,
+  mustChangePassword: false,
   hydrated: false,
 
   setSession: (session) => {
@@ -46,8 +53,20 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     });
   },
 
+  clearPasswordChangeRequirement: () => {
+    set({ mustChangePassword: false });
+    const { accessToken, role, profileId, locationId } = get();
+    if (!accessToken || !role || !profileId || !locationId) return;
+    // Re-persisted so a restart doesn't resurrect the requirement and trap the user on the
+    // change screen with a password they have already replaced.
+    SecureStore.setItemAsync(
+      SECURE_STORE_KEY,
+      JSON.stringify({ accessToken, role, profileId, locationId, mustChangePassword: false }),
+    ).catch(() => {});
+  },
+
   clearSession: () => {
-    set({ accessToken: null, role: null, profileId: null, locationId: null, hydrated: true });
+    set({ accessToken: null, role: null, profileId: null, locationId: null, mustChangePassword: false, hydrated: true });
     SecureStore.deleteItemAsync(SECURE_STORE_KEY).catch(() => {});
   },
 
@@ -57,7 +76,9 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       const raw = await SecureStore.getItemAsync(SECURE_STORE_KEY);
       if (raw) {
         const session = JSON.parse(raw) as PersistedSession;
-        set({ ...session, hydrated: true });
+        // Defaulted rather than trusted: a session persisted before this field existed has no
+        // value for it, and `undefined` would read as "no change needed".
+        set({ ...session, mustChangePassword: session.mustChangePassword ?? false, hydrated: true });
         return;
       }
     } catch {

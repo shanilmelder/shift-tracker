@@ -24,7 +24,7 @@ import { connectRealtimeStream } from '../src/offline/realtime-client';
 export default function RootLayout(): React.JSX.Element {
   const router = useRouter();
   const segments = useSegments();
-  const { accessToken, role, hydrated, hydrate } = useSessionStore();
+  const { accessToken, role, hydrated, hydrate, mustChangePassword } = useSessionStore();
   const setSyncStatus = useAppStore((state) => state.setSyncStatus);
   const [fontsLoaded] = useFonts({
     Fraunces_600SemiBold,
@@ -59,10 +59,19 @@ export default function RootLayout(): React.JSX.Element {
       router.replace('/(auth)/login');
       return;
     }
+    // Checked before the redirect out of (auth): an account still on its temporary password is
+    // signed in but blocked at the API on every route except the password change itself, so
+    // routing it to a dashboard would only render a screen full of 403s.
+    if (accessToken && mustChangePassword) {
+      // Widened deliberately: useSegments() is typed as a tuple of the routes expo-router knows
+      // statically, so indexing past its length is a type error rather than a runtime one.
+      if (!(segments as string[]).includes('set-password')) router.replace('/(auth)/set-password');
+      return;
+    }
     if (accessToken && inAuthGroup) {
       router.replace(role === 'manager' ? '/(manager)/dashboard' : '/(employee)/schedule');
     }
-  }, [hydrated, accessToken, role, segments, router]);
+  }, [hydrated, accessToken, role, mustChangePassword, segments, router]);
 
   useEffect(() => {
     if (!accessToken) return;

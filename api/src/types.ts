@@ -7,6 +7,8 @@ export interface CallerProfile {
   role: 'employee' | 'manager';
   locationId: string;
   isActive: boolean;
+  /** True while the account is still on a manager-issued temporary password. */
+  mustChangePassword: boolean;
 }
 
 declare module 'fastify' {

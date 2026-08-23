@@ -1,9 +1,8 @@
 import { supabase } from '../data/supabase-client.js';
 import { findProfileById, updateProfile } from '../data/profiles.repo.js';
-import { RESET_PASSWORD_DEEP_LINK } from '../config/app-links.js';
 
 /**
- * Session exchange and password reset only. There is deliberately no `signUp` export here —
+ * Session exchange and password change only. There is deliberately no `signUp` export here —
  * account creation is manager-only (users.service.ts), never self-service (FR-002/FR-005).
  */
 export async function createSession(email: string, password: string) {
@@ -18,10 +17,10 @@ export async function createSession(email: string, password: string) {
   };
 }
 
-export async function requestPasswordReset(email: string): Promise<void> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: RESET_PASSWORD_DEEP_LINK });
-  if (error) throw error;
-}
+// There is deliberately no `requestPasswordReset` here any more. Recovery is manager-issued
+// (users.service.ts's `issueTempPassword`): a locked-out user asks a manager, who sends them a
+// fresh temporary password. That removes this app's dependency on email deep links entirely —
+// they never worked in Expo Go, and a custom scheme needs a real build to register at all.
 
 export async function getMe(profileId: string) {
   const profile = await findProfileById(profileId);
@@ -30,11 +29,12 @@ export async function getMe(profileId: string) {
 }
 
 /**
- * Sets the caller's password. Reachable two ways with identical effect: a signed-in user
- * changing their password, or a brand-new/reset-requesting user whose invite/recovery
- * access_token (a normal Supabase session JWT, per Supabase's own redirect flow) was accepted
- * by authMiddleware like any other bearer token — no separate token-verification path needed.
- * Flips invite_status to 'accepted', a no-op if it already was.
+ * Sets the caller's password: a signed-in user changing it, or — the common case — someone who
+ * has just signed in with a manager-issued temporary password and is being made to replace it.
+ *
+ * Flipping invite_status to 'accepted' is what lifts the block in
+ * require-password-change.middleware.ts, so this is the only way out of that state. A no-op if
+ * it was already 'accepted'.
  */
 export async function setPassword(profileId: string, password: string): Promise<void> {
   const { error } = await supabase.auth.admin.updateUserById(profileId, { password });

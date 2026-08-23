@@ -9,7 +9,7 @@ import '../types.js';
  * client-supplied role claim is never trusted).
  *
  * Register this as a Fastify `preHandler` on every route except the public auth endpoints
- * (`POST /v1/auth/session`, `POST /v1/auth/password-reset`).
+ * (`POST /v1/auth/session`).
  */
 export async function authMiddleware(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const header = request.headers.authorization;
@@ -27,7 +27,7 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, name, role, location_id, is_active')
+    .select('id, name, role, location_id, is_active, invite_status')
     .eq('id', userResult.user.id)
     .single();
 
@@ -48,5 +48,7 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
     role: profile.role,
     locationId: profile.location_id,
     isActive: profile.is_active,
+    // 'pending' means the account has never moved off the temp password it was created with.
+    mustChangePassword: profile.invite_status === 'pending',
   };
 }

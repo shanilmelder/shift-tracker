@@ -2,8 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme, Button, TextField, Badge, ConfirmDialog } from '../../../../src/components';
-import { getStaffMember, updateStaffMember, setStaffActive, deleteStaffMember } from '../../../../src/api/admin-users.api';
+import { theme, Button, TextField, Badge, ConfirmDialog, TempPasswordNotice } from '../../../../src/components';
+import {
+  getStaffMember,
+  updateStaffMember,
+  setStaffActive,
+  deleteStaffMember,
+  resetStaffPassword,
+  type TempPasswordResult,
+} from '../../../../src/api/admin-users.api';
 import { usePullToRefresh } from '../../../../src/hooks';
 import { ApiError } from '../../../../src/types/api/common';
 
@@ -37,6 +44,9 @@ export default function EditStaffScreen(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingReset, setConfirmingReset] = useState(false);
+  /** Held in state because the API returns the password once and never again. */
+  const [issued, setIssued] = useState<TempPasswordResult | null>(null);
 
   // Re-seeds when the server copy changes (including after a pull-to-refresh), rather than
   // only on mount, so the form never shows values that have since moved on.
@@ -93,6 +103,19 @@ export default function EditStaffScreen(): React.JSX.Element {
     },
     // Refused for anyone with history — the message names what is blocking it.
     onError: (err) => setError(describe(err, 'Could not delete this person. Please try again.')),
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: () => resetStaffPassword(staffId),
+    onSuccess: (result) => {
+      setError(null);
+      // Kept on screen rather than toasted: this is the only time the password is readable, so
+      // it has to persist until the manager has passed it on.
+      setIssued(result);
+      // invite_status goes back to 'pending', which the Team list badges.
+      invalidate();
+    },
+    onError: (err) => setError(describe(err, 'Could not reset their password. Please try again.')),
   });
 
   function handleSave(): void {
@@ -183,6 +206,25 @@ export default function EditStaffScreen(): React.JSX.Element {
         />
 
         <Text style={styles.hint}>
+          Resetting issues a new temporary password and invalidates the old one. They&apos;ll have to
+          choose a new password the next time they sign in.
+        </Text>
+        <Button
+          label={resetMutation.isPending ? 'Resetting…' : 'Reset password'}
+          variant="secondary"
+          onPress={() => setConfirmingReset(true)}
+          disabled={resetMutation.isPending}
+        />
+        {issued ? (
+          <TempPasswordNotice
+            name={staff.name}
+            tempPassword={issued.tempPassword}
+            emailSent={issued.emailSent}
+            emailError={issued.emailError}
+          />
+        ) : null}
+
+        <Text style={styles.hint}>
           Deleting removes the account entirely, and is only possible for someone with no shifts,
           timesheets or requests on record.
         </Text>
@@ -193,6 +235,18 @@ export default function EditStaffScreen(): React.JSX.Element {
           disabled={deleteMutation.isPending}
         />
       </View>
+
+      <ConfirmDialog
+        visible={confirmingReset}
+        title="Reset this password?"
+        message={`"${staff.name}" will be signed out of nothing, but their current password stops working immediately. You'll be shown a new temporary one to pass on.`}
+        confirmLabel="Reset"
+        onConfirm={() => {
+          setConfirmingReset(false);
+          resetMutation.mutate();
+        }}
+        onCancel={() => setConfirmingReset(false)}
+      />
 
       <ConfirmDialog
         visible={confirmingDelete}

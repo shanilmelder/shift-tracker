@@ -1,5 +1,12 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { createUser, updateUser, setUserActive, deleteUser, AccountProvisioningError } from '../services/users.service.js';
+import {
+  createUser,
+  updateUser,
+  setUserActive,
+  deleteUser,
+  issueTempPassword,
+  AccountProvisioningError,
+} from '../services/users.service.js';
 import { listProfilesByLocation, findProfileById } from '../data/profiles.repo.js';
 import { CreateUserSchema, UpdateUserSchema, SetActiveSchema } from '../schemas/admin-users.schemas.js';
 import '../types.js';
@@ -132,6 +139,33 @@ export async function deleteUserHandler(request: FastifyRequest, reply: FastifyR
     return;
   }
   await reply.code(204).send();
+}
+
+/**
+ * Issues a fresh temporary password. This is the app's entire password-recovery path for
+ * staff, so it is scoped to the caller's own location — a manager must not be able to reset
+ * the credentials of someone at another location.
+ */
+export async function resetUserPasswordHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  const { id } = request.params as { id: string };
+  const caller = request.caller!;
+
+  const existing = await findProfileById(id);
+  if (!existing || existing.location_id !== caller.locationId) {
+    await reply.code(404).send({ error: { code: 'NOT_FOUND', message: 'Staff member not found' } });
+    return;
+  }
+
+  const result = await issueTempPassword(caller.id, id);
+  if (!result.ok) {
+    await sendGuardFailure(reply, result);
+    return;
+  }
+  await reply.send({
+    tempPassword: result.tempPassword,
+    emailSent: result.emailSent,
+    ...(result.emailError ? { emailError: result.emailError } : {}),
+  });
 }
 
 export async function deactivateUserHandler(request: FastifyRequest, reply: FastifyReply): Promise<void> {
