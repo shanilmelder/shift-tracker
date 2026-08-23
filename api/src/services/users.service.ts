@@ -113,14 +113,27 @@ export async function createUser(input: CreateUserInput): Promise<CreatedUser> {
     const profile = await findProfileById(authUserId);
     if (!profile) throw new Error('Profile was not created for the new auth user');
 
-    // Send the invite (email or SMS, per FR-007) so the new user sets their own password —
-    // this call intentionally never has a password to hand back to the manager.
-    await supabase.auth.admin.inviteUserByEmail(input.email, { redirectTo: RESET_PASSWORD_DEEP_LINK });
+    // Send the account's first-access email (FR-007) so the new user sets their own password —
+    // this flow intentionally never has a password to hand back to the manager.
+    //
+    // NOT `admin.inviteUserByEmail`: that call both creates a user and mails them, so it only
+    // works for an address with no account yet. The account already exists here — the
+    // `createUser` above just made it, because the profile trigger needs `app_metadata` set at
+    // insert time — so inviting always came back `email_exists` and no mail was ever sent.
+    // A recovery mail carries the same "set your password" link to the same deep link, and is
+    // what scripts/resend-invite.ts already falls back to for exactly this reason.
+    const { error: inviteError } = await supabase.auth.resetPasswordForEmail(input.email, {
+      redirectTo: RESET_PASSWORD_DEEP_LINK,
+    });
+    // Checked, not discarded: this returns `{ error }` rather than throwing, so ignoring the
+    // result is what let a failed send pass for a successful account creation.
+    if (inviteError) throw inviteError;
 
     return toCreatedUser(profile);
   } catch (err) {
-    // Only reachable if the invite send fails: deleting the auth user cascades the profile
-    // away with it, leaving nothing behind for the manager to retry around.
+    // Reached when the profile is missing or the first-access email could not be sent:
+    // deleting the auth user cascades the profile away with it, leaving nothing behind for
+    // the manager to retry around.
     await supabase.auth.admin.deleteUser(authUserId);
     throw err;
   }

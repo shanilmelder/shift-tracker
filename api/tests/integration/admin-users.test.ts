@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { RESET_PASSWORD_DEEP_LINK } from '../../src/config/app-links.js';
 
 /**
  * Integration test for T031 / User Story 1: a manager creates an employee account and the
@@ -18,6 +19,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const authAdminCreateUser = vi.fn();
 const authAdminDeleteUser = vi.fn();
+const authResetPasswordForEmail = vi.fn();
+/** Present only so a regression back to it fails loudly: this is the wrong call for an
+ * account that already exists, and using it is what stopped invite mail being sent at all. */
 const authAdminInviteUserByEmail = vi.fn();
 const profilesMaybeSingle = vi.fn();
 /** Records any write attempted against `profiles` — there should never be one. */
@@ -27,6 +31,7 @@ const locationsMaybeSingle = vi.fn();
 vi.mock('../../src/data/supabase-client.js', () => ({
   supabase: {
     auth: {
+      resetPasswordForEmail: (...args: unknown[]) => authResetPasswordForEmail(...args),
       admin: {
         createUser: (...args: unknown[]) => authAdminCreateUser(...args),
         deleteUser: (...args: unknown[]) => authAdminDeleteUser(...args),
@@ -62,6 +67,7 @@ describe('users.service.createUser', () => {
     authAdminCreateUser.mockReset();
     authAdminDeleteUser.mockReset();
     authAdminInviteUserByEmail.mockReset();
+    authResetPasswordForEmail.mockReset();
     profilesMaybeSingle.mockReset();
     profilesWrite.mockReset();
     locationsMaybeSingle.mockReset();
@@ -69,7 +75,7 @@ describe('users.service.createUser', () => {
 
   it('creates the auth user and profile together, with no plaintext password returned', async () => {
     authAdminCreateUser.mockResolvedValue({ data: { user: { id: 'auth-user-1' } }, error: null });
-    authAdminInviteUserByEmail.mockResolvedValue({ data: {}, error: null });
+    authResetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
     profilesMaybeSingle.mockResolvedValue({ data: PROFILE, error: null });
 
     const { createUser } = await import('../../src/services/users.service.js');
@@ -90,11 +96,22 @@ describe('users.service.createUser', () => {
 
     // The profile is the trigger's job now; the service must not write to that table at all.
     expect(profilesWrite).not.toHaveBeenCalled();
+
+    // The whole point of the flow: the new user must actually be mailed a link to set a
+    // password, since no password is ever handed to the manager.
+    expect(authResetPasswordForEmail).toHaveBeenCalledTimes(1);
+    expect(authResetPasswordForEmail).toHaveBeenCalledWith('jordan@example.com', {
+      redirectTo: RESET_PASSWORD_DEEP_LINK,
+    });
+    // `inviteUserByEmail` both creates and mails, so it fails with `email_exists` for the
+    // account admin.createUser just made — and returns that error rather than throwing, so it
+    // fails silently. Using it here sent no mail at all.
+    expect(authAdminInviteUserByEmail).not.toHaveBeenCalled();
   });
 
   it('passes the profile fields the trigger needs via app_metadata, never user_metadata', async () => {
     authAdminCreateUser.mockResolvedValue({ data: { user: { id: 'auth-user-1' } }, error: null });
-    authAdminInviteUserByEmail.mockResolvedValue({ data: {}, error: null });
+    authResetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
     profilesMaybeSingle.mockResolvedValue({ data: PROFILE, error: null });
 
     const { createUser } = await import('../../src/services/users.service.js');
@@ -116,7 +133,9 @@ describe('users.service.createUser', () => {
   it('deletes the just-created auth user if the invite fails (compensating action)', async () => {
     authAdminCreateUser.mockResolvedValue({ data: { user: { id: 'auth-user-2' } }, error: null });
     profilesMaybeSingle.mockResolvedValue({ data: { ...PROFILE, id: 'auth-user-2' }, error: null });
-    authAdminInviteUserByEmail.mockRejectedValue(new Error('invite send failed'));
+    // Returned, not thrown — `resetPasswordForEmail` resolves with `{ error }`. Mocking a
+    // rejection here is what let the discarded-result bug pass this very test.
+    authResetPasswordForEmail.mockResolvedValue({ data: null, error: new Error('invite send failed') });
     authAdminDeleteUser.mockResolvedValue({ error: null });
 
     const { createUser } = await import('../../src/services/users.service.js');
