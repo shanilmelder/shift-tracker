@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify';
-import { createSession, requestPasswordReset, getMe, setPassword } from '../services/auth.service.js';
-import { CreateSessionSchema, PasswordResetSchema, SetPasswordSchema } from '../schemas/auth.schemas.js';
+import { createSession, getMe, setPassword } from '../services/auth.service.js';
+import { CreateSessionSchema, SetPasswordSchema } from '../schemas/auth.schemas.js';
 import '../types.js';
 
 /**
- * `POST /v1/auth/session` and `POST /v1/auth/password-reset` are the only two routes in this
- * entire API that do not require a bearer token (see app.ts's PUBLIC_ROUTES allow-list).
+ * `POST /v1/auth/session` is the only route in this entire API that does not require a bearer
+ * token (see app.ts's PUBLIC_ROUTES allow-list).
  * There is no `POST /v1/auth/signup` route defined here, or anywhere else — this is the
  * enforcement mechanism for the closed account model, not just a policy statement (FR-002).
  */
@@ -20,19 +20,13 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     await reply.send(session);
   });
 
-  app.post('/v1/auth/password-reset', async (request, reply) => {
-    const parsed = PasswordResetSchema.safeParse(request.body);
-    if (!parsed.success) {
-      await reply.code(400).send({ error: { code: 'VALIDATION_ERROR', message: parsed.error.message } });
-      return;
-    }
-    await requestPasswordReset(parsed.data.email);
-    await reply.code(204).send();
-  });
+  // No password-reset route: a user who cannot sign in asks a manager, who issues a fresh
+  // temporary password via POST /v1/admin/users/:id/reset-password. Self-service reset needed
+  // an emailed deep link, which this app deliberately no longer depends on.
 
-  // Authenticated by design (see auth.service.ts's setPassword doc comment): an invite/recovery
-  // access_token from Supabase's email redirect is a normal bearer token, so authMiddleware
-  // already verifies it with no extra handling — no separate public token-verification route.
+  // Authenticated, and one of the few routes reachable while the caller is still on a
+  // temporary password (see require-password-change.middleware.ts's allow-list) — it is the
+  // only way out of that state.
   app.patch('/v1/auth/password', async (request, reply) => {
     const parsed = SetPasswordSchema.safeParse(request.body);
     if (!parsed.success) {
