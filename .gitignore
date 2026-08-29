@@ -18,3 +18,16 @@ Thumbs.db
 .vercel
 .env*
 !.env.example
+
+# Report build artefacts and personal supporting evidence.
+#
+# The generated report is deliberately NOT committed: it embeds a signed letter of support
+# carrying a third party's name, signature, stamp and direct contact details, and this
+# repository is public. The build scripts and the app screenshots (test data only) ARE
+# committed, so the document regenerates on any machine that holds the letter locally.
+docs/report/screenshots/letter of recommendation.jpeg
+docs/report/Shift-Tracker-Project-Report.docx
+docs/report/Shift-Tracker-Project-Report.doc
+docs/report/.report-backup.docx
+__pycache__/
+*.pyc
